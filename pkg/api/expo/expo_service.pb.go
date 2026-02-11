@@ -58,8 +58,8 @@ func (*GetInfoRequest) Descriptor() ([]byte, []int) {
 }
 
 type GetInfoResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Version       string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Version       *GetInfoResponse_Version `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -94,7 +94,51 @@ func (*GetInfoResponse) Descriptor() ([]byte, []int) {
 	return file_expo_service_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetInfoResponse) GetVersion() string {
+func (x *GetInfoResponse) GetVersion() *GetInfoResponse_Version {
+	if x != nil {
+		return x.Version
+	}
+	return nil
+}
+
+type GetInfoResponse_Version struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Version       string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetInfoResponse_Version) Reset() {
+	*x = GetInfoResponse_Version{}
+	mi := &file_expo_service_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetInfoResponse_Version) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetInfoResponse_Version) ProtoMessage() {}
+
+func (x *GetInfoResponse_Version) ProtoReflect() protoreflect.Message {
+	mi := &file_expo_service_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetInfoResponse_Version.ProtoReflect.Descriptor instead.
+func (*GetInfoResponse_Version) Descriptor() ([]byte, []int) {
+	return file_expo_service_proto_rawDescGZIP(), []int{1, 0}
+}
+
+func (x *GetInfoResponse_Version) GetVersion() string {
 	if x != nil {
 		return x.Version
 	}
@@ -106,8 +150,10 @@ var File_expo_service_proto protoreflect.FileDescriptor
 const file_expo_service_proto_rawDesc = "" +
 	"\n" +
 	"\x12expo_service.proto\x12\x04expo\"\x10\n" +
-	"\x0eGetInfoRequest\"+\n" +
-	"\x0fGetInfoResponse\x12\x18\n" +
+	"\x0eGetInfoRequest\"o\n" +
+	"\x0fGetInfoResponse\x127\n" +
+	"\aversion\x18\x01 \x01(\v2\x1d.expo.GetInfoResponse.VersionR\aversion\x1a#\n" +
+	"\aVersion\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\tR\aversion2G\n" +
 	"\vExpoService\x128\n" +
 	"\aGetInfo\x12\x14.expo.GetInfoRequest\x1a\x15.expo.GetInfoResponse\"\x00B\x16Z\x14expoapp/pkg/api/expob\x06proto3"
@@ -124,19 +170,21 @@ func file_expo_service_proto_rawDescGZIP() []byte {
 	return file_expo_service_proto_rawDescData
 }
 
-var file_expo_service_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_expo_service_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_expo_service_proto_goTypes = []any{
-	(*GetInfoRequest)(nil),  // 0: expo.GetInfoRequest
-	(*GetInfoResponse)(nil), // 1: expo.GetInfoResponse
+	(*GetInfoRequest)(nil),          // 0: expo.GetInfoRequest
+	(*GetInfoResponse)(nil),         // 1: expo.GetInfoResponse
+	(*GetInfoResponse_Version)(nil), // 2: expo.GetInfoResponse.Version
 }
 var file_expo_service_proto_depIdxs = []int32{
-	0, // 0: expo.ExpoService.GetInfo:input_type -> expo.GetInfoRequest
-	1, // 1: expo.ExpoService.GetInfo:output_type -> expo.GetInfoResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: expo.GetInfoResponse.version:type_name -> expo.GetInfoResponse.Version
+	0, // 1: expo.ExpoService.GetInfo:input_type -> expo.GetInfoRequest
+	1, // 2: expo.ExpoService.GetInfo:output_type -> expo.GetInfoResponse
+	2, // [2:3] is the sub-list for method output_type
+	1, // [1:2] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_expo_service_proto_init() }
@@ -150,7 +198,7 @@ func file_expo_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_expo_service_proto_rawDesc), len(file_expo_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -7,7 +7,11 @@ option go_package = "expoapp/pkg/api/expo";
 message GetInfoRequest {}
 
 message GetInfoResponse {
-  string version = 1;
+  message Version {
+    string version = 1;
+  }
+
+  Version version = 1;
 }
 
 service ExpoService {
