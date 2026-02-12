@@ -1,9 +1,6 @@
 include .env
 export
 
-run:
-	go run ./cmd/server
-
 lint:
 	golangci-lint run ./...
 
@@ -14,10 +11,10 @@ test:
 	@echo "Running unit tests..."
 	go test ./...
 
-PROTO_DIR := api/expo
-OUT_DIR := pkg/api/expo
+PROTO_DIR := api/proto
+OUT_DIR := pkg/api/pb
 
-gen_protobuf:
+gen_pb:
 	@echo "Creating dir for protobuf files..."
 	mkdir -p $(OUT_DIR)
 	@echo "Generating protobuf files..."
@@ -32,11 +29,9 @@ gen_protobuf:
 gen_mocks:
 	go generate generate.go
 
-GOLANGCI_LINT_VERSION := v2.9.0
+gen_all: gen_pb gen_mocks
 
-install_grpcurl:
-	@echo "Installing grpcurl..."
-	go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+GOLANGCI_LINT_VERSION := v2.9.0
 
 install_linter:
 	@echo "Installing golangci-lint $(GOLANGCI_LINT_VERSION)..."
@@ -46,25 +41,26 @@ install_protoc:
 	@echo "Installing protoc..."
 	sudo apt install -y protobuf-compiler
 
-install_tools: install_linter
+install_tools:
 	@echo "Installing proto plugins..."
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	@echo "Installing mockgen plugin..."
 	go install go.uber.org/mock/mockgen@latest
+	@echo "Installing grpcurl..."
+	go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 
 help:
 	cat Makefile
 
 .PHONY: \
-	run \
 	test \
 	lint \
 	fix \
-	gen_protobuf \
+	gen_pb \
 	gen_mocks \
+	gen_all \
 	install_linter \
 	install_protoc \
-	install_grpcurl \
 	install_tools \
 	help

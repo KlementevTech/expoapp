@@ -4,7 +4,7 @@
 // 	protoc        v3.21.12
 // source: expo_service.proto
 
-package expo
+package pb
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -21,26 +21,26 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type GetInfoRequest struct {
+type GetInfoV1Request struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetInfoRequest) Reset() {
-	*x = GetInfoRequest{}
+func (x *GetInfoV1Request) Reset() {
+	*x = GetInfoV1Request{}
 	mi := &file_expo_service_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetInfoRequest) String() string {
+func (x *GetInfoV1Request) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetInfoRequest) ProtoMessage() {}
+func (*GetInfoV1Request) ProtoMessage() {}
 
-func (x *GetInfoRequest) ProtoReflect() protoreflect.Message {
+func (x *GetInfoV1Request) ProtoReflect() protoreflect.Message {
 	mi := &file_expo_service_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -52,32 +52,32 @@ func (x *GetInfoRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetInfoRequest.ProtoReflect.Descriptor instead.
-func (*GetInfoRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetInfoV1Request.ProtoReflect.Descriptor instead.
+func (*GetInfoV1Request) Descriptor() ([]byte, []int) {
 	return file_expo_service_proto_rawDescGZIP(), []int{0}
 }
 
-type GetInfoResponse struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Version       *GetInfoResponse_Version `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+type GetInfoV1Response struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Version       *GetInfoV1Response_Version `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetInfoResponse) Reset() {
-	*x = GetInfoResponse{}
+func (x *GetInfoV1Response) Reset() {
+	*x = GetInfoV1Response{}
 	mi := &file_expo_service_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetInfoResponse) String() string {
+func (x *GetInfoV1Response) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetInfoResponse) ProtoMessage() {}
+func (*GetInfoV1Response) ProtoMessage() {}
 
-func (x *GetInfoResponse) ProtoReflect() protoreflect.Message {
+func (x *GetInfoV1Response) ProtoReflect() protoreflect.Message {
 	mi := &file_expo_service_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -89,39 +89,39 @@ func (x *GetInfoResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetInfoResponse.ProtoReflect.Descriptor instead.
-func (*GetInfoResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetInfoV1Response.ProtoReflect.Descriptor instead.
+func (*GetInfoV1Response) Descriptor() ([]byte, []int) {
 	return file_expo_service_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetInfoResponse) GetVersion() *GetInfoResponse_Version {
+func (x *GetInfoV1Response) GetVersion() *GetInfoV1Response_Version {
 	if x != nil {
 		return x.Version
 	}
 	return nil
 }
 
-type GetInfoResponse_Version struct {
+type GetInfoV1Response_Version struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Version       string                 `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetInfoResponse_Version) Reset() {
-	*x = GetInfoResponse_Version{}
+func (x *GetInfoV1Response_Version) Reset() {
+	*x = GetInfoV1Response_Version{}
 	mi := &file_expo_service_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetInfoResponse_Version) String() string {
+func (x *GetInfoV1Response_Version) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetInfoResponse_Version) ProtoMessage() {}
+func (*GetInfoV1Response_Version) ProtoMessage() {}
 
-func (x *GetInfoResponse_Version) ProtoReflect() protoreflect.Message {
+func (x *GetInfoV1Response_Version) ProtoReflect() protoreflect.Message {
 	mi := &file_expo_service_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -133,12 +133,12 @@ func (x *GetInfoResponse_Version) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetInfoResponse_Version.ProtoReflect.Descriptor instead.
-func (*GetInfoResponse_Version) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetInfoV1Response_Version.ProtoReflect.Descriptor instead.
+func (*GetInfoV1Response_Version) Descriptor() ([]byte, []int) {
 	return file_expo_service_proto_rawDescGZIP(), []int{1, 0}
 }
 
-func (x *GetInfoResponse_Version) GetVersion() string {
+func (x *GetInfoV1Response_Version) GetVersion() string {
 	if x != nil {
 		return x.Version
 	}
@@ -149,14 +149,14 @@ var File_expo_service_proto protoreflect.FileDescriptor
 
 const file_expo_service_proto_rawDesc = "" +
 	"\n" +
-	"\x12expo_service.proto\x12\x04expo\"\x10\n" +
-	"\x0eGetInfoRequest\"o\n" +
-	"\x0fGetInfoResponse\x127\n" +
-	"\aversion\x18\x01 \x01(\v2\x1d.expo.GetInfoResponse.VersionR\aversion\x1a#\n" +
+	"\x12expo_service.proto\x12\x05proto\"\x12\n" +
+	"\x10GetInfoV1Request\"t\n" +
+	"\x11GetInfoV1Response\x12:\n" +
+	"\aversion\x18\x01 \x01(\v2 .proto.GetInfoV1Response.VersionR\aversion\x1a#\n" +
 	"\aVersion\x12\x18\n" +
-	"\aversion\x18\x01 \x01(\tR\aversion2G\n" +
-	"\vExpoService\x128\n" +
-	"\aGetInfo\x12\x14.expo.GetInfoRequest\x1a\x15.expo.GetInfoResponse\"\x00B\x16Z\x14expoapp/pkg/api/expob\x06proto3"
+	"\aversion\x18\x01 \x01(\tR\aversion2O\n" +
+	"\vExpoService\x12@\n" +
+	"\tGetInfoV1\x12\x17.proto.GetInfoV1Request\x1a\x18.proto.GetInfoV1Response\"\x00B\x14Z\x12expoapp/pkg/api/pbb\x06proto3"
 
 var (
 	file_expo_service_proto_rawDescOnce sync.Once
@@ -172,14 +172,14 @@ func file_expo_service_proto_rawDescGZIP() []byte {
 
 var file_expo_service_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_expo_service_proto_goTypes = []any{
-	(*GetInfoRequest)(nil),          // 0: expo.GetInfoRequest
-	(*GetInfoResponse)(nil),         // 1: expo.GetInfoResponse
-	(*GetInfoResponse_Version)(nil), // 2: expo.GetInfoResponse.Version
+	(*GetInfoV1Request)(nil),          // 0: proto.GetInfoV1Request
+	(*GetInfoV1Response)(nil),         // 1: proto.GetInfoV1Response
+	(*GetInfoV1Response_Version)(nil), // 2: proto.GetInfoV1Response.Version
 }
 var file_expo_service_proto_depIdxs = []int32{
-	2, // 0: expo.GetInfoResponse.version:type_name -> expo.GetInfoResponse.Version
-	0, // 1: expo.ExpoService.GetInfo:input_type -> expo.GetInfoRequest
-	1, // 2: expo.ExpoService.GetInfo:output_type -> expo.GetInfoResponse
+	2, // 0: proto.GetInfoV1Response.version:type_name -> proto.GetInfoV1Response.Version
+	0, // 1: proto.ExpoService.GetInfoV1:input_type -> proto.GetInfoV1Request
+	1, // 2: proto.ExpoService.GetInfoV1:output_type -> proto.GetInfoV1Response
 	2, // [2:3] is the sub-list for method output_type
 	1, // [1:2] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

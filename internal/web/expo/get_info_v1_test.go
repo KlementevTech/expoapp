@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"expoapp/internal/web/expo"
-	expopb "expoapp/pkg/api/expo"
+	"expoapp/pkg/api/pb"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,21 +16,21 @@ import (
 
 const devVersion = "dev"
 
-func TestService_GetInfo(t *testing.T) {
+func TestService_GetInfoV1(t *testing.T) {
 	tests := []struct {
 		name    string
-		prepare func(mock *mocks.MockVersionService)
-		want    *expopb.GetInfoResponse
+		prepare func(mock *mocks.MockVersionProvider)
+		want    *pb.GetInfoV1Response
 	}{
 		{
 			name: "success",
-			prepare: func(versions *mocks.MockVersionService) {
+			prepare: func(versions *mocks.MockVersionProvider) {
 				versions.EXPECT().
 					GetVersion().
 					Return(domain.NewVersion(devVersion))
 			},
-			want: &expopb.GetInfoResponse{
-				Version: &expopb.GetInfoResponse_Version{
+			want: &pb.GetInfoV1Response{
+				Version: &pb.GetInfoV1Response_Version{
 					Version: "dev",
 				},
 			},
@@ -41,12 +41,12 @@ func TestService_GetInfo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
-			versions := mocks.NewMockVersionService(ctrl)
+			versions := mocks.NewMockVersionProvider(ctrl)
 			expoService := expo.NewService(versions)
 
 			tt.prepare(versions)
 
-			got, err := expoService.GetInfo(context.Background(), &expopb.GetInfoRequest{})
+			got, err := expoService.GetInfoV1(context.Background(), &pb.GetInfoV1Request{})
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})

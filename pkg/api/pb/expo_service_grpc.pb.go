@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: expo_service.proto
 
-package expo
+package pb
 
 import (
 	context "context"
@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ExpoService_GetInfo_FullMethodName = "/expo.ExpoService/GetInfo"
+	ExpoService_GetInfoV1_FullMethodName = "/proto.ExpoService/GetInfoV1"
 )
 
 // ExpoServiceClient is the client API for ExpoService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ExpoServiceClient interface {
-	GetInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*GetInfoResponse, error)
+	GetInfoV1(ctx context.Context, in *GetInfoV1Request, opts ...grpc.CallOption) (*GetInfoV1Response, error)
 }
 
 type expoServiceClient struct {
@@ -37,10 +37,10 @@ func NewExpoServiceClient(cc grpc.ClientConnInterface) ExpoServiceClient {
 	return &expoServiceClient{cc}
 }
 
-func (c *expoServiceClient) GetInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*GetInfoResponse, error) {
+func (c *expoServiceClient) GetInfoV1(ctx context.Context, in *GetInfoV1Request, opts ...grpc.CallOption) (*GetInfoV1Response, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetInfoResponse)
-	err := c.cc.Invoke(ctx, ExpoService_GetInfo_FullMethodName, in, out, cOpts...)
+	out := new(GetInfoV1Response)
+	err := c.cc.Invoke(ctx, ExpoService_GetInfoV1_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *expoServiceClient) GetInfo(ctx context.Context, in *GetInfoRequest, opt
 // All implementations must embed UnimplementedExpoServiceServer
 // for forward compatibility.
 type ExpoServiceServer interface {
-	GetInfo(context.Context, *GetInfoRequest) (*GetInfoResponse, error)
+	GetInfoV1(context.Context, *GetInfoV1Request) (*GetInfoV1Response, error)
 	mustEmbedUnimplementedExpoServiceServer()
 }
 
@@ -62,8 +62,8 @@ type ExpoServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedExpoServiceServer struct{}
 
-func (UnimplementedExpoServiceServer) GetInfo(context.Context, *GetInfoRequest) (*GetInfoResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetInfo not implemented")
+func (UnimplementedExpoServiceServer) GetInfoV1(context.Context, *GetInfoV1Request) (*GetInfoV1Response, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInfoV1 not implemented")
 }
 func (UnimplementedExpoServiceServer) mustEmbedUnimplementedExpoServiceServer() {}
 func (UnimplementedExpoServiceServer) testEmbeddedByValue()                     {}
@@ -86,20 +86,20 @@ func RegisterExpoServiceServer(s grpc.ServiceRegistrar, srv ExpoServiceServer) {
 	s.RegisterService(&ExpoService_ServiceDesc, srv)
 }
 
-func _ExpoService_GetInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetInfoRequest)
+func _ExpoService_GetInfoV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInfoV1Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ExpoServiceServer).GetInfo(ctx, in)
+		return srv.(ExpoServiceServer).GetInfoV1(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ExpoService_GetInfo_FullMethodName,
+		FullMethod: ExpoService_GetInfoV1_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ExpoServiceServer).GetInfo(ctx, req.(*GetInfoRequest))
+		return srv.(ExpoServiceServer).GetInfoV1(ctx, req.(*GetInfoV1Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -108,12 +108,12 @@ func _ExpoService_GetInfo_Handler(srv interface{}, ctx context.Context, dec func
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ExpoService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "expo.ExpoService",
+	ServiceName: "proto.ExpoService",
 	HandlerType: (*ExpoServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetInfo",
-			Handler:    _ExpoService_GetInfo_Handler,
+			MethodName: "GetInfoV1",
+			Handler:    _ExpoService_GetInfoV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

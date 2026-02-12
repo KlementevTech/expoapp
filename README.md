@@ -11,10 +11,10 @@ make run
 ```
 
 ```shell
-# Sending GetInfo request
+# Sending proto.ExpoService/GetInfoV1 request
 grpcurl \
   -plaintext \
   -d '{}' \
-  127.0.0.1:9091 \
-  expo.ExpoService/GetInfo
+  127.0.0.1:50051 \
+  proto.ExpoService/GetInfoV1
 ```

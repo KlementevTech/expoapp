@@ -2,23 +2,31 @@ package expo
 
 import (
 	"expoapp/internal/domain"
-	expopb "expoapp/pkg/api/expo"
+	"expoapp/pkg/api/pb"
+
+	"google.golang.org/grpc"
 )
 
-var _ expopb.ExpoServiceServer = (*Service)(nil)
+var _ pb.ExpoServiceServer = (*Service)(nil)
 
-type VersionService interface {
+type VersionProvider interface {
 	GetVersion() *domain.Version
 }
 
 type Service struct {
-	expopb.UnimplementedExpoServiceServer
+	pb.UnimplementedExpoServiceServer
 
-	versions VersionService
+	versions VersionProvider
 }
 
-func NewService(versions VersionService) *Service {
+func NewService(versions VersionProvider) *Service {
 	return &Service{
 		versions: versions,
+	}
+}
+
+func RegisterService(versions VersionProvider) func(s *grpc.Server) {
+	return func(s *grpc.Server) {
+		pb.RegisterExpoServiceServer(s, NewService(versions))
 	}
 }
