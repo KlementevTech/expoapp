@@ -1,22 +1,26 @@
-# expoapp
+# Expoapp
+
+Сервис предоставляет шаблон для разработки GRPC микросервисов.
+
+## Команды для поднятия сервиса
 
 ```shell
-# Copy environments
+# Копирует файл с переменными окружения
 cp .env.example .env
 ```
 
 ```shell
-# Building docker image
+# Собирает docker образ
 make docker_build
 ```
 
 ```shell
-# Starting dev container
+# Запускает сервис в docker контейнере
 make up
 ```
 
 ```shell
-# Sending proto.ExpoService/GetInfoV1 request
+# Отправляет запрос на proto.ExpoService/GetInfoV1
 grpcurl \
   -plaintext \
   -d '{}' \
