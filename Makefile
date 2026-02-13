@@ -1,6 +1,11 @@
 include .env
 export
 
+NAMESPACE := klementevtech
+APP_NAME := expoapp
+VERSION := $(shell git describe --tags --always --dirty 2>/dev/null | sed 's/^v//' || echo "dev")
+DOCKER_TAG := $(NAMESPACE)/$(APP_NAME):$(VERSION)
+
 lint:
 	golangci-lint run ./...
 
@@ -11,10 +16,16 @@ test:
 	@echo "Running unit tests..."
 	go test ./...
 
-VERSION := $(shell git describe --tags --always --dirty 2>/dev/null | sed 's/^v//' || echo "dev")
-
 build_bin:
-	CGO_ENABLED=0 GOOS=linux go build -ldflags="-X main.version=$(VERSION) -s -w" -o bin/expoapp ./cmd/server
+	@echo "Building bin file, version [$(VERSION)]..."
+	CGO_ENABLED=0 GOOS=linux go build -ldflags="-X main.version=$(VERSION) -s -w" -o bin/$(APP_NAME) ./cmd/server
+
+docker_build: build_bin
+	@echo "Building docker image, tag [$(DOCKER_TAG)]..."
+	docker build -t $(DOCKER_TAG) -f ./ci/docker/Dockerfile .
+
+up:
+	VERSION=$(VERSION) docker compose -p expoapp -f ./ci/dev/docker-compose.yml --env-file .env up -d
 
 PROTO_DIR := api/proto
 OUT_DIR := pkg/api/pb
@@ -39,7 +50,7 @@ gen_all: gen_pb gen_mocks
 GOLANGCI_LINT_VERSION := v2.9.0
 
 install_linter:
-	@echo "Installing golangci-lint $(GOLANGCI_LINT_VERSION)..."
+	@echo "Installing golangci-lint, version [$(GOLANGCI_LINT_VERSION)]..."
 	curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $$(go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 
 install_protoc:
@@ -57,16 +68,3 @@ install_tools:
 
 help:
 	cat Makefile
-
-.PHONY: \
-	test \
-	lint \
-	fix \
-	build_bin \
-	gen_pb \
-	gen_mocks \
-	gen_all \
-	install_linter \
-	install_protoc \
-	install_tools \
-	help

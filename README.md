@@ -6,8 +6,13 @@ cp .env.example .env
 ```
 
 ```shell
-# Starting Expoapp application
-make run
+# Building docker image
+make docker_build
+```
+
+```shell
+# Starting dev container
+make up
 ```
 
 ```shell
@@ -15,6 +20,6 @@ make run
 grpcurl \
   -plaintext \
   -d '{}' \
-  127.0.0.1:50051 \
+  localhost:50051 \
   proto.ExpoService/GetInfoV1
 ```
