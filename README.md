@@ -1,8 +1,13 @@
-# Expoapp
+# Expo gRPC Service
 
-Сервис предоставляет шаблон для разработки GRPC микросервисов.
+Сервис предоставляет шаблон для разработки gRPC сервисов.
 
-## Команды для поднятия сервиса
+Для работы с сервисом вам необходимо установить [Task](https://taskfile.dev/).
+
+```shell
+# Список доступных команд в Taskfile
+task
+```
 
 ```shell
 # Копирует файл с переменными окружения
@@ -11,19 +16,24 @@ cp .env.example .env
 
 ```shell
 # Собирает docker образ
-make docker_build
+task build-docker
 ```
 
 ```shell
 # Запускает сервис в docker контейнере
-make up
+task compose-up
 ```
 
 ```shell
 # Отправляет запрос на proto.ExpoService/GetInfoV1
-grpcurl \
-  -plaintext \
-  -d '{}' \
-  localhost:50051 \
-  proto.ExpoService/GetInfoV1
+    ./bin/grpcurl \
+    -plaintext \
+    -d '{}' \
+    localhost:50051 \
+    expo.v1.ExpoService/GetVersion
+```
+
+```shell
+# Запускает нагрузочный тест
+task test-perf
 ```

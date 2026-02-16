@@ -8,9 +8,8 @@ import (
 	"os/signal"
 
 	"expoapp/internal"
+	"expoapp/internal/handlers/expo"
 	"expoapp/internal/service"
-	"expoapp/internal/web"
-	"expoapp/internal/web/expo"
 
 	"github.com/caarlos0/env/v11"
 	"golang.org/x/sync/errgroup"
@@ -25,26 +24,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	versions := service.NewVersionService(version)
-
-	grpcServer := web.NewGRPCServer(
-		web.ServiceRegisterFunc(expo.RegisterService(versions)),
-	)
+	vs := service.NewVersionService(version)
 
 	g, ctx := errgroup.WithContext(context.Background())
 	ctx = withInterrupt(ctx, os.Interrupt)
 
-	slog.Default().Info(
+	slog.Default().InfoContext(
+		ctx,
 		"starting grpc server",
 		slog.String("host", cfg.GRPCServerHost),
 		slog.Int("port", cfg.GRPCServerPort),
 	)
-	web.StartGRPCServer(
+	grpcServer := internal.StartGRPCServer(
 		ctx,
 		g,
-		grpcServer,
 		cfg.GRPCServerHost,
 		cfg.GRPCServerPort,
+		expo.RegisterHandler(vs),
 	)
 
 	g.Go(func() error {
@@ -57,7 +53,7 @@ func main() {
 	})
 
 	if err = g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
-		slog.Default().Error("something went wrong", "error", err)
+		slog.Default().Error("failed to start servers", "error", err)
 		os.Exit(1)
 	}
 }

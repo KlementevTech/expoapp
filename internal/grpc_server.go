@@ -1,4 +1,4 @@
-package web
+package internal
 
 import (
 	"context"
@@ -10,35 +10,22 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-type ServiceRegister interface {
-	RegisterService(s *grpc.Server)
-}
-
-type ServiceRegisterFunc func(s *grpc.Server)
-
-func (f ServiceRegisterFunc) RegisterService(s *grpc.Server) {
-	f(s)
-}
-
-func NewGRPCServer(register ...ServiceRegister) *grpc.Server {
-	s := grpc.NewServer()
-
-	for _, r := range register {
-		r.RegisterService(s)
-	}
-
-	reflection.Register(s)
-
-	return s
-}
+type RegisterFunc func(s *grpc.Server)
 
 func StartGRPCServer(
 	ctx context.Context,
 	g *errgroup.Group,
-	s *grpc.Server,
 	host string,
 	port int,
+	register ...RegisterFunc,
 ) *grpc.Server {
+	s := grpc.NewServer()
+	reflection.Register(s)
+
+	for _, r := range register {
+		r(s)
+	}
+
 	g.Go(func() error {
 		lis, err := new(net.ListenConfig).
 			Listen(ctx, "tcp", net.JoinHostPort(host, strconv.Itoa(port)))

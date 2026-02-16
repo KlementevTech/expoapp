@@ -1,17 +1,19 @@
 package service
 
-import "expoapp/internal/domain"
+import (
+	"expoapp/internal/model"
+)
 
 type VersionService struct {
-	model *domain.Version
+	currentVersion string
 }
 
 func NewVersionService(version string) *VersionService {
 	return &VersionService{
-		model: domain.NewVersion(version),
+		currentVersion: version,
 	}
 }
 
-func (s *VersionService) GetVersion() *domain.Version {
-	return s.model
+func (s *VersionService) GetCurrentVersion() *model.Version {
+	return new(model.Version(s.currentVersion))
 }

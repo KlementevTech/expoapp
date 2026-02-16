@@ -1,0 +1,153 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  NAMESPACE: klementevtech
+  SERVICE: expo
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null | sed 's/^v//' || echo "dev"
+  TAG: '{{.NAMESPACE}}/{{.SERVICE}}:{{.VERSION}}'
+
+  SERVICE_DIR: '{{.ROOT_DIR}}'
+  BIN_DIR: '{{.SERVICE_DIR}}/bin'
+
+  GOLANGCI_LINT_VERSION: v2.9.0
+  GOFUMPT_VERSION: v0.9.2
+  BUF_VERSION: v1.65.0
+
+env:
+  VERSION: "{{.VERSION}}"
+  GOBIN: "{{.BIN_DIR}}"
+
+tasks:
+  lint:
+    desc: Запускает линтер
+    deps:
+      - install-linter
+    cmds:
+      - '{{.BIN_DIR}}/golangci-lint run ./...'
+
+  fix:
+    desc: Запускает форматтер
+    deps:
+      - install-gofumpt
+    cmds:
+      - '{{.BIN_DIR}}/gofumpt -l -w .'
+
+  gen-mocks:
+    desc: Генерирует моки
+    deps:
+      - install-mockgen
+    cmds:
+      - PATH="{{.BIN_DIR}}:$PATH" go generate generate.go
+
+  gen-pb:
+    desc: Генерирует protobuf файлы используя Buf
+    dir: api
+    cmds:
+      - PATH="{{.BIN_DIR}}:$PATH" buf generate
+
+  lint-proto:
+    desc: Проверка protobuf линтером
+    dir: api
+    cmds:
+      - PATH="{{.BIN_DIR}}:$PATH" buf lint
+
+  lint-changes:
+    desc: Проверка обратной совместимости proto файлов
+    dir: api
+    cmds:
+      - PATH="{{.BIN_DIR}}:$PATH" buf breaking --against "{{.SERVICE_DIR}}/.git#branch=main"
+
+  test:
+    desc: Запускает тесты
+    cmds:
+      - go test -v ./...
+
+  test-perf:
+    desc: Запускает нагрузочный тест
+    cmds:
+      - |
+        docker compose run --rm \
+        k6-test \
+        -e VERSION=$VERSION \
+        run "/scripts/test.js"
+
+  build-bin:
+    desc: Собирает исполняемый файл
+    cmds:
+      - |
+        CGO_ENABLED=0 GOOS=linux \
+        go build -ldflags="-X main.version={{.VERSION}} -s -w" \
+        -o bin/{{.SERVICE}} ./cmd/server
+
+  build-docker:
+    desc: Собирает Docker образ
+    deps:
+      - build-bin
+    cmds:
+     - docker build -t {{.TAG}} -f "{{.SERVICE_DIR}}/build/Dockerfile" .
+
+  compose-up:
+    desc: Запускает сервис в docker контейнере
+    cmds:
+      - docker compose up -d
+
+  install-linter:
+    desc: Устанавливает линтер golangci-lint в ./bin
+    status:
+      - test -f "{{.BIN_DIR}}/golangci-lint"
+    cmds:
+      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "{{.BIN_DIR}}" {{.GOLANGCI_LINT_VERSION}}
+
+  install-gofumpt:
+    desc: Устанавливает форматтер в ./bin
+    status:
+      - test -f "{{.BIN_DIR}}/gofumpt"
+    cmds:
+      - go install mvdan.cc/gofumpt@{{.GOFUMPT_VERSION}}
+
+  install-mockgen:
+    desc: Устанавливает генератор моков в ./bin
+    status:
+      - test -f "{{.BIN_DIR}}/mockgen"
+    cmds:
+      - go install go.uber.org/mock/mockgen@latest
+
+  install-protoc:
+    desc: Устанавливает protoc расширения в ./bin
+    status:
+      - test -f "{{.BIN_DIR}}/protoc-gen-go"
+      - test -f "{{.BIN_DIR}}/protoc-gen-go-grpc"
+    cmds:
+      - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+      - go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+  install-tools:
+    desc: Устанавливает расширения для локальной разработки
+    cmds:
+      - task install-linter
+      - task install-gofumpt
+      - task install-mockgen
+      - task install-protoc
+
+  install-grpcurl:
+    desc: Устанавливает cli gRPC клиент в ./bin
+    status:
+      - test -f "{{.BIN_DIR}}/grpcurl"
+    cmds:
+      - go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+
+  install-buf:
+    desc: Устанавливает Buf
+    status:
+      - test -f "{{.BIN_DIR}}/buf"
+    cmds:
+      - go install github.com/bufbuild/buf/cmd/buf@{{.BUF_VERSION}}
+
+  default:
+    desc: Список доступных команд
+    silent: true
+    cmds:
+      - task --list

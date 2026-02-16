@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package expo.v1;
+
+message GetVersionRequest {}
+
+message GetVersionResponse {
+  message Version {
+    string value = 1;
+  }
+
+  Version version = 1;
+}
+
+service ExpoService {
+  rpc GetVersion(GetVersionRequest) returns (GetVersionResponse) {}
+}
+
