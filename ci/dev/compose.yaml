@@ -1,0 +1,30 @@
+name: expo
+
+services:
+  expo-service:
+    image: ${EXPO_IMAGE:-klementevtech/expo:latest}
+    container_name: expo-service
+    ports:
+      - "50051:${EXPO_GRPC_SERVER_PORT:-50051}"
+    environment:
+      EXPO_GRPC_SERVER_HOST: ${EXPO_GRPC_SERVER_HOST}
+      EXPO_GRPC_SERVER_PORT: ${EXPO_GRPC_SERVER_PORT}
+    networks:
+      - expo-network
+
+  perf-test:
+    image: grafana/k6:latest
+    container_name: perf-test
+    profiles:
+      - perf
+    volumes:
+      - ../../api/proto:/proto
+      - ../../test/k6:/scripts
+    depends_on:
+      - expo-service
+    networks:
+      - expo-network
+
+networks:
+  expo-network:
+    driver: bridge

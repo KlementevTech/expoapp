@@ -3,10 +3,10 @@ package expo_test
 import (
 	"testing"
 
-	"expoapp/internal/handlers/expo"
-	"expoapp/internal/handlers/expo/mocks"
-	"expoapp/internal/model"
-	expov1 "expoapp/pkg/pb/expo/v1"
+	"expo/internal/handlers/expo"
+	"expo/internal/handlers/expo/mocks"
+	"expo/internal/model"
+	expov1 "expo/pkg/pb/expo/v1"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +25,7 @@ func TestService_GetVersion(t *testing.T) {
 			name: "success",
 			prepare: func(versions *mocks.MockVersionService) {
 				versions.EXPECT().
-					GetCurrentVersion().
+					GetVersion().
 					Return(new(model.Version(devVersion)))
 			},
 			want: &expov1.GetVersionResponse{

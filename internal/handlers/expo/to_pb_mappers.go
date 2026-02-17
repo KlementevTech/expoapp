@@ -1,8 +1,8 @@
 package expo
 
 import (
-	"expoapp/internal/model"
-	expov1 "expoapp/pkg/pb/expo/v1"
+	"expo/internal/model"
+	expov1 "expo/pkg/pb/expo/v1"
 )
 
 func mapVersionToPb(version *model.Version) *expov1.GetVersionResponse_Version {

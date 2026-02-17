@@ -5,146 +5,235 @@ version: '3'
 vars:
   NAMESPACE: klementevtech
   SERVICE: expo
+
+  IMAGE: '{{.NAMESPACE}}/{{.SERVICE}}'
+  IMAGE_LATEST: '{{.IMAGE}}:latest'
   VERSION:
     sh: git describe --tags --always --dirty 2>/dev/null | sed 's/^v//' || echo "dev"
-  TAG: '{{.NAMESPACE}}/{{.SERVICE}}:{{.VERSION}}'
+  IMAGE_VERSIONED: '{{.IMAGE}}:{{.VERSION}}'
 
   SERVICE_DIR: '{{.ROOT_DIR}}'
   BIN_DIR: '{{.SERVICE_DIR}}/bin'
+  CI_DEV_DIR: '{{.SERVICE_DIR}}/ci/dev'
+  API_DIR: '{{.SERVICE_DIR}}/api'
+  DOCKERFILE_PATH: '{{.SERVICE_DIR}}/ci/docker/Dockerfile'
+  SERVICE_BIN_PATH: '{{.BIN_DIR}}/{{.SERVICE}}'
 
-  GOLANGCI_LINT_VERSION: v2.9.0
-  GOFUMPT_VERSION: v0.9.2
-  BUF_VERSION: v1.65.0
-
-env:
-  VERSION: "{{.VERSION}}"
-  GOBIN: "{{.BIN_DIR}}"
+  ALPINE_VERSION: '3.23'
+  GOLANGCI_LINT_VERSION: 'v2.9.0'
+  GOFUMPT_VERSION: 'v0.9.2'
+  BUF_VERSION: 'v1.65.0'
+  NANCY_VERSION: 'v1.0.46'
 
 tasks:
   lint:
     desc: Запускает линтер
     deps:
-      - install-linter
+      - task: install-tools
+        silent: true
     cmds:
       - '{{.BIN_DIR}}/golangci-lint run ./...'
 
-  fix:
+  format:
     desc: Запускает форматтер
     deps:
-      - install-gofumpt
+      - task: install-tools
+        silent: true
     cmds:
       - '{{.BIN_DIR}}/gofumpt -l -w .'
 
   gen-mocks:
     desc: Генерирует моки
     deps:
-      - install-mockgen
+      - task: install-tools
+        silent: true
     cmds:
-      - PATH="{{.BIN_DIR}}:$PATH" go generate generate.go
+      - PATH="{{.BIN_DIR}}:$PATH" go generate ./...
 
   gen-pb:
     desc: Генерирует protobuf файлы используя Buf
-    dir: api
+    deps:
+      - task: install-tools
+        silent: true
+    dir: "{{.API_DIR}}"
     cmds:
-      - PATH="{{.BIN_DIR}}:$PATH" buf generate
+      - '{{.BIN_DIR}}/buf generate'
 
   lint-proto:
     desc: Проверка protobuf линтером
-    dir: api
+    deps:
+      - task: install-tools
+        silent: true
+    dir: "{{.API_DIR}}"
     cmds:
-      - PATH="{{.BIN_DIR}}:$PATH" buf lint
+      - '{{.BIN_DIR}}/buf lint'
 
-  lint-changes:
+  lint-proto-changes:
     desc: Проверка обратной совместимости proto файлов
-    dir: api
+    deps:
+      - task: install-tools
+        silent: true
+    dir: "{{.API_DIR}}"
     cmds:
-      - PATH="{{.BIN_DIR}}:$PATH" buf breaking --against "{{.SERVICE_DIR}}/.git#branch=main"
+      - '{{.BIN_DIR}}/buf breaking --against "{{.SERVICE_DIR}}/.git#branch=main"'
 
   test:
     desc: Запускает тесты
     cmds:
       - go test -v ./...
 
-  test-perf:
-    desc: Запускает нагрузочный тест
+  tidy:
+    desc: Обновляет go.mod и go.sum
+    cmds:
+      - go mod tidy
+
+  check-deps:
+    desc: Проверяет наличие уязвимостей в зависимостях
+    deps:
+      - task: install-tools
+        silent: true
     cmds:
       - |
-        docker compose run --rm \
-        k6-test \
-        -e VERSION=$VERSION \
-        run "/scripts/test.js"
+        if [ -z "$NANCY_USERNAME" ] || [ -z "$NANCY_TOKEN" ]; then
+          echo "[WARN] NANCY_USERNAME или NANCY_TOKEN не установлены"
+          echo "   Проверка уязвимостей пропущена"
+          echo "   Получите токен на https://ossindex.sonatype.org/"
+          exit 0
+        fi
+        go list -json -deps ./... | {{.BIN_DIR}}/nancy sleuth
+
+  pre-commit:
+    desc: Запускает все проверки перед коммитом
+    cmds:
+      - task: format
+      - task: lint
+      - task: lint-proto
+      - task: test
+      - task: tidy
+      - task: check-deps
+      - echo "[OK] Все проверки пройдены"
 
   build-bin:
     desc: Собирает исполняемый файл
+    deps:
+      - mk-bin
     cmds:
       - |
         CGO_ENABLED=0 GOOS=linux \
-        go build -ldflags="-X main.version={{.VERSION}} -s -w" \
-        -o bin/{{.SERVICE}} ./cmd/server
+        go build \
+          -ldflags="-X main.version={{.VERSION}} -s -w" \
+          -o "{{.SERVICE_BIN_PATH}}" \
+          ./cmd/server
 
-  build-docker:
+  build:
     desc: Собирает Docker образ
     deps:
       - build-bin
     cmds:
-     - docker build -t {{.TAG}} -f "{{.SERVICE_DIR}}/build/Dockerfile" .
+      - |
+        docker build \
+          --build-arg ALPINE_VERSION={{.ALPINE_VERSION}} \
+          -t "{{.IMAGE_VERSIONED}}" \
+          -t "{{.IMAGE_LATEST}}" \
+          -f "{{.DOCKERFILE_PATH}}" .
 
-  compose-up:
-    desc: Запускает сервис в docker контейнере
+  cp-env:
+    desc: Копирует файл с переменными окружения
+    dir: "{{.CI_DEV_DIR}}"
+    status:
+      - test -f .env
+    cmds:
+      - cp -n .env.example .env
+      - echo "[OK] Файл .env создан из .env.example"
+
+  up:
+    desc: Поднимает сервис в docker контейнере
+    dir: "{{.CI_DEV_DIR}}"
+    env:
+      EXPO_IMAGE: "{{.EXPO_IMAGE | default .IMAGE_VERSIONED}}"
+    deps:
+      - cp-env
     cmds:
       - docker compose up -d
 
-  install-linter:
-    desc: Устанавливает линтер golangci-lint в ./bin
-    status:
-      - test -f "{{.BIN_DIR}}/golangci-lint"
+  stop:
+    desc: Останавливает сервис в docker контейнере
+    dir: "{{.CI_DEV_DIR}}"
     cmds:
-      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "{{.BIN_DIR}}" {{.GOLANGCI_LINT_VERSION}}
+      - docker compose stop
 
-  install-gofumpt:
-    desc: Устанавливает форматтер в ./bin
-    status:
-      - test -f "{{.BIN_DIR}}/gofumpt"
+  perf:
+    desc: Запускает нагрузочный тест
+    dir: "{{.CI_DEV_DIR}}"
+    env:
+      EXPO_IMAGE: "{{.EXPO_IMAGE | default .IMAGE_VERSIONED}}"
     cmds:
-      - go install mvdan.cc/gofumpt@{{.GOFUMPT_VERSION}}
-
-  install-mockgen:
-    desc: Устанавливает генератор моков в ./bin
-    status:
-      - test -f "{{.BIN_DIR}}/mockgen"
-    cmds:
-      - go install go.uber.org/mock/mockgen@latest
-
-  install-protoc:
-    desc: Устанавливает protoc расширения в ./bin
-    status:
-      - test -f "{{.BIN_DIR}}/protoc-gen-go"
-      - test -f "{{.BIN_DIR}}/protoc-gen-go-grpc"
-    cmds:
-      - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-      - go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+      - docker compose run --rm perf-test run "/scripts/test.js"
+      - task: stop
 
   install-tools:
     desc: Устанавливает расширения для локальной разработки
+    deps:
+      - task: mk-bin
+        silent: true
+    status:
+      - test -f "{{.BIN_DIR}}/golangci-lint"
+      - test -f "{{.BIN_DIR}}/gofumpt"
+      - test -f "{{.BIN_DIR}}/mockgen"
+      - test -f "{{.BIN_DIR}}/protoc-gen-go"
+      - test -f "{{.BIN_DIR}}/protoc-gen-go-grpc"
+      - test -f "{{.BIN_DIR}}/buf"
+      - test -f "{{.BIN_DIR}}/nancy"
+    env:
+      GOBIN: "{{.BIN_DIR}}"
     cmds:
-      - task install-linter
-      - task install-gofumpt
-      - task install-mockgen
-      - task install-protoc
+      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "{{.BIN_DIR}}" {{.GOLANGCI_LINT_VERSION}}
+      - |
+        go install mvdan.cc/gofumpt@{{.GOFUMPT_VERSION}} &
+        go install go.uber.org/mock/mockgen@latest &
+        go install google.golang.org/protobuf/cmd/protoc-gen-go@latest &
+        go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest &
+        go install github.com/bufbuild/buf/cmd/buf@{{.BUF_VERSION}} &
+        go install github.com/sonatype-nexus-community/nancy@{{.NANCY_VERSION}} &
+        wait
+
+  update-tools:
+    desc: Обновляет все инструменты до последних версий
+    cmds:
+      - |
+        rm -f {{.BIN_DIR}}/golangci-lint &
+        rm -f {{.BIN_DIR}}/gofumpt & 
+        rm -f {{.BIN_DIR}}/mockgen &
+        rm -f {{.BIN_DIR}}/protoc-gen-go &
+        rm -f {{.BIN_DIR}}/protoc-gen-go-grpc &
+        rm -f {{.BIN_DIR}}/buf & 
+        rm -f {{.BIN_DIR}}/nancy &
+        wait
+      - task: install-tools
 
   install-grpcurl:
-    desc: Устанавливает cli gRPC клиент в ./bin
+    desc: Устанавливает gRPC CLI клиент
     status:
       - test -f "{{.BIN_DIR}}/grpcurl"
+    env:
+      GOBIN: "{{.BIN_DIR}}"
     cmds:
       - go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 
-  install-buf:
-    desc: Устанавливает Buf
+  mk-bin:
+    desc: Создает папку для бинарников
     status:
-      - test -f "{{.BIN_DIR}}/buf"
+      - test -d "{{.BIN_DIR}}"
     cmds:
-      - go install github.com/bufbuild/buf/cmd/buf@{{.BUF_VERSION}}
+      - mkdir -p "{{.BIN_DIR}}"
+      - echo "[OK] Директория {{.BIN_DIR}} создана"
+
+  clean:
+    desc: Очищает все сгенерированные бинарники
+    status:
+      - test ! -d "{{.BIN_DIR}}"
+    cmds:
+      - rm -rf "{{.BIN_DIR}}"
 
   default:
     desc: Список доступных команд

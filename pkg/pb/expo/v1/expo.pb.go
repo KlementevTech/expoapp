@@ -157,8 +157,8 @@ const file_expo_v1_expo_proto_rawDesc = "" +
 	"\x05value\x18\x01 \x01(\tR\x05value2V\n" +
 	"\vExpoService\x12G\n" +
 	"\n" +
-	"GetVersion\x12\x1a.expo.v1.GetVersionRequest\x1a\x1b.expo.v1.GetVersionResponse\"\x00Bt\n" +
-	"\vcom.expo.v1B\tExpoProtoP\x01Z\x1dexpoapp/pkg/pb/expo/v1;expov1\xa2\x02\x03EXX\xaa\x02\aExpo.V1\xca\x02\aExpo\\V1\xe2\x02\x13Expo\\V1\\GPBMetadata\xea\x02\bExpo::V1b\x06proto3"
+	"GetVersion\x12\x1a.expo.v1.GetVersionRequest\x1a\x1b.expo.v1.GetVersionResponse\"\x00Bq\n" +
+	"\vcom.expo.v1B\tExpoProtoP\x01Z\x1aexpo/pkg/pb/expo/v1;expov1\xa2\x02\x03EXX\xaa\x02\aExpo.V1\xca\x02\aExpo\\V1\xe2\x02\x13Expo\\V1\\GPBMetadata\xea\x02\bExpo::V1b\x06proto3"
 
 var (
 	file_expo_v1_expo_proto_rawDescOnce sync.Once

@@ -3,24 +3,26 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"log/slog"
 	"os"
 	"os/signal"
 
-	"expoapp/internal"
-	"expoapp/internal/handlers/expo"
-	"expoapp/internal/service"
+	"expo/internal"
+	"expo/internal/service"
 
-	"github.com/caarlos0/env/v11"
 	"golang.org/x/sync/errgroup"
 )
 
 var version = "dev"
 
 func main() {
-	cfg, err := env.ParseAs[internal.Config]()
+	cfgPath := flag.String("config", "", "path to config file")
+	flag.Parse()
+
+	cfg, err := internal.LoadConfig[internal.Config](*cfgPath)
 	if err != nil {
-		slog.Default().Error("failed to parse config", "error", err)
+		slog.Default().Error("failed to load config", "error", err)
 		os.Exit(1)
 	}
 
@@ -29,28 +31,7 @@ func main() {
 	g, ctx := errgroup.WithContext(context.Background())
 	ctx = withInterrupt(ctx, os.Interrupt)
 
-	slog.Default().InfoContext(
-		ctx,
-		"starting grpc server",
-		slog.String("host", cfg.GRPCServerHost),
-		slog.Int("port", cfg.GRPCServerPort),
-	)
-	grpcServer := internal.StartGRPCServer(
-		ctx,
-		g,
-		cfg.GRPCServerHost,
-		cfg.GRPCServerPort,
-		expo.RegisterHandler(vs),
-	)
-
-	g.Go(func() error {
-		<-ctx.Done()
-
-		slog.Default().Info("stopping grpc server")
-		grpcServer.GracefulStop()
-
-		return nil
-	})
+	internal.StartServers(ctx, g, cfg, vs)
 
 	if err = g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
 		slog.Default().Error("failed to start servers", "error", err)

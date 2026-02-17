@@ -11,7 +11,7 @@ task
 
 ```shell
 # Копирует файл с переменными окружения
-cp .env.example .env
+task cp-env
 ```
 
 ```shell

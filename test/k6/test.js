@@ -1,9 +1,9 @@
 import grpc from 'k6/net/grpc';
 import { check, sleep } from 'k6';
 
-const GRPC_ADDRESS = __ENV.GRPC_ADDRESS
-const VUS = __ENV.VUS
-const DURATION = __ENV.DURATION
+const GRPC_ADDRESS = __ENV.GRPC_ADDRESS || "expo-service:50051"
+const DURATION = __ENV.DURATION || "1m"
+const VUS = __ENV.VUS || "50"
 
 const client = new grpc.Client();
 client.load(['/proto'], 'expo/v1/expo.proto');
