@@ -16,12 +16,17 @@ task cp-env
 
 ```shell
 # Собирает docker образ
-task build-docker
+task build
 ```
 
 ```shell
 # Запускает сервис в docker контейнере
-task compose-up
+task up
+```
+
+```shell
+# Устанавливает grpcurl
+task install-grpcurl
 ```
 
 ```shell
@@ -35,5 +40,5 @@ task compose-up
 
 ```shell
 # Запускает нагрузочный тест
-task test-perf
+task perf
 ```
