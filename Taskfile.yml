@@ -14,9 +14,7 @@ vars:
 
   SERVICE_DIR: '{{.ROOT_DIR}}'
   BIN_DIR: '{{.SERVICE_DIR}}/bin'
-  CI_DEV_DIR: '{{.SERVICE_DIR}}/ci/dev'
   API_DIR: '{{.SERVICE_DIR}}/api'
-  DOCKERFILE_PATH: '{{.SERVICE_DIR}}/ci/docker/Dockerfile'
   SERVICE_BIN_PATH: '{{.BIN_DIR}}/{{.SERVICE}}'
 
   ALPINE_VERSION: '3.23'
@@ -105,12 +103,11 @@ tasks:
   pre-commit:
     desc: Запускает все проверки перед коммитом
     cmds:
+      - task: tidy
       - task: format
       - task: lint
       - task: lint-proto
       - task: test
-      - task: tidy
-      - task: check-deps
       - echo "[OK] Все проверки пройдены"
 
   build-bin:
@@ -135,11 +132,10 @@ tasks:
           --build-arg ALPINE_VERSION={{.ALPINE_VERSION}} \
           -t "{{.IMAGE_VERSIONED}}" \
           -t "{{.IMAGE_LATEST}}" \
-          -f "{{.DOCKERFILE_PATH}}" .
+          .
 
   cp-env:
     desc: Копирует файл с переменными окружения
-    dir: "{{.CI_DEV_DIR}}"
     status:
       - test -f .env
     cmds:
@@ -148,7 +144,6 @@ tasks:
 
   up:
     desc: Поднимает сервис в docker контейнере
-    dir: "{{.CI_DEV_DIR}}"
     env:
       EXPO_IMAGE: "{{.EXPO_IMAGE | default .IMAGE_VERSIONED}}"
     deps:
@@ -158,13 +153,11 @@ tasks:
 
   stop:
     desc: Останавливает сервис в docker контейнере
-    dir: "{{.CI_DEV_DIR}}"
     cmds:
       - docker compose stop
 
   perf:
     desc: Запускает нагрузочный тест
-    dir: "{{.CI_DEV_DIR}}"
     env:
       EXPO_IMAGE: "{{.EXPO_IMAGE | default .IMAGE_VERSIONED}}"
     cmds:
@@ -226,7 +219,6 @@ tasks:
       - test -d "{{.BIN_DIR}}"
     cmds:
       - mkdir -p "{{.BIN_DIR}}"
-      - echo "[OK] Директория {{.BIN_DIR}} создана"
 
   clean:
     desc: Очищает все сгенерированные бинарники

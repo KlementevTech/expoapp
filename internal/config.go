@@ -24,7 +24,6 @@ func LoadConfig[T any](path string) (*T, error) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.SetConfigFile(path)
 
-	cfg := new(T)
 	if err := viper.ReadInConfig(); err != nil {
 		if errors.As(err, &viper.ConfigFileNotFoundError{}) {
 			slog.Default().Warn("config file not found, using defaults")
@@ -38,6 +37,7 @@ func LoadConfig[T any](path string) (*T, error) {
 		viper.SetDefault("grpc_server.port", "50051")
 	}()
 
+	cfg := new(T)
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, fmt.Errorf("unable to decode into struct: %w", err)
 	}

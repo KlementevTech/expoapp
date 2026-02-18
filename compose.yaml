@@ -18,8 +18,8 @@ services:
     profiles:
       - perf
     volumes:
-      - ../../api/proto:/proto
-      - ../../test/k6:/scripts
+      - ./api/proto:/proto
+      - ./test/k6:/scripts
     depends_on:
       - expo-service
     networks:
