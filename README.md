@@ -31,14 +31,19 @@ task install-grpcurl
 
 ```shell
 # Отправляет запрос на proto.ExpoService/GetInfoV1
-    ./bin/grpcurl \
-    -plaintext \
-    -d '{}' \
-    localhost:50051 \
-    expo.v1.ExpoService/GetVersion
+./bin/grpcurl \
+  -plaintext \
+  -d '{}' \
+  localhost:50051 \
+  expo.v1.ExpoService/GetVersion
 ```
 
 ```shell
 # Запускает нагрузочный тест
 task perf
+```
+
+```shell
+# Останавливает контейнер
+task stop
 ```
