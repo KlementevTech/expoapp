@@ -17,10 +17,11 @@ import (
 var version = "dev"
 
 func main() {
-	cfgPath := flag.String("config", "", "path to config file")
+	var path string
+	flag.StringVar(&path, "config", "", "config file path")
 	flag.Parse()
 
-	cfg, err := internal.LoadConfig[internal.Config](*cfgPath)
+	cfg, err := internal.LoadConfig(path)
 	if err != nil {
 		slog.Default().Error("failed to load config", "error", err)
 		os.Exit(1)

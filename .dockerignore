@@ -1,0 +1,10 @@
+.git/
+.idea/
+
+bin/
+docker/
+
+.gitignore
+.golangci.yaml
+Taskfile.yml
+.env

@@ -1,13 +1,27 @@
-ARG ALPINE_VERSION=3.23
-FROM alpine:${ALPINE_VERSION}
+ARG GOLANG_VERSION=1.26
+FROM golang:${GOLANG_VERSION}-alpine AS builder
 
-RUN apk add --no-cache ca-certificates && \
-    adduser -D -u 1000 expouser
+WORKDIR /app
 
-WORKDIR /usr/local/bin
+COPY go.mod go.sum ./
+RUN go mod download
 
-COPY --chmod=755 bin/expo expo
+COPY . .
 
-USER expouser
+ARG VERSION=dev
+ARG CGO_ENABLED=0
 
-CMD ["expo"]
+RUN CGO_ENABLED=${CGO_ENABLED} GOOS=linux \
+    go build \
+    -ldflags="-X main.version=${VERSION} -s -w" \
+    -o /tmp/expo \
+    ./cmd/server
+
+FROM gcr.io/distroless/static:nonroot
+
+COPY --from=builder /tmp/expo /bin/expo
+
+USER 65532:65532
+
+ENTRYPOINT ["/bin/expo"]
+CMD ["--config", "/etc/expo/config.toml"]

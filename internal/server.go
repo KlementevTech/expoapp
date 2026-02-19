@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-func StartServers(ctx context.Context, g *errgroup.Group, cfg *Config, vs *service.VersionService) {
+func StartServers(ctx context.Context, g *errgroup.Group, cfg Config, vs *service.VersionService) {
 	grpcServer := startGRPCServer(
 		ctx,
 		g,
