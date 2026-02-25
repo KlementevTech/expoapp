@@ -213,9 +213,7 @@ tasks:
   install-grpcurl:
     desc: Устанавливает gRPC CLI клиент
     status:
-      - test -f "{{.BIN_DIR}}/grpcurl"
-    env:
-      GOBIN: '{{.BIN_DIR}}'
+      - test -f "{{.GOBIN}}/grpcurl"
     cmds:
       - go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 

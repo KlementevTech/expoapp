@@ -30,7 +30,7 @@ func (s *service) GetVersion(_ context.Context, _ *expov1.GetVersionRequest) (*e
 	}, nil
 }
 
-func RegisterHandler(versionService VersionService) func(s *grpc.Server) {
+func Register(versionService VersionService) func(s *grpc.Server) {
 	return func(s *grpc.Server) {
 		expov1.RegisterExpoServiceServer(s, NewService(versionService))
 	}

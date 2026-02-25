@@ -12,7 +12,8 @@ import (
 type Config struct {
 	GRPCServer GRPCServerConfig `mapstructure:"grpc_server"`
 	RESTServer RESTServerConfig `mapstructure:"rest_server"`
-	LogLevel   string           `mapstructure:"log_level"`
+	Pprof      PprofConfig      `mapstructure:"pprof"`
+	Log        LogConfig        `mapstructure:"log"`
 }
 
 type GRPCServerConfig struct {
@@ -24,7 +25,17 @@ type RESTServerConfig struct {
 	Host              string        `mapstructure:"host"`
 	Port              int           `mapstructure:"port"`
 	ReadHeaderTimeout time.Duration `mapstructure:"read_header_timeout"`
-	ShutdownTimeout   time.Duration `mapstructure:"shutdown_timeout"`
+}
+
+type PprofConfig struct {
+	Host              string        `mapstructure:"host"`
+	Port              int           `mapstructure:"port"`
+	Enabled           bool          `mapstructure:"enabled"`
+	ReadHeaderTimeout time.Duration `mapstructure:"read_header_timeout"`
+}
+
+type LogConfig struct {
+	Level string `mapstructure:"level"`
 }
 
 func LoadConfig(path string) (Config, error) {

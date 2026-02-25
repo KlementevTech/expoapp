@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"log/slog"
 	"os"
@@ -10,8 +9,6 @@ import (
 
 	"expo/internal"
 	"expo/internal/service"
-
-	"golang.org/x/sync/errgroup"
 )
 
 var version = "dev"
@@ -27,7 +24,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = setupLogger(cfg.LogLevel, version)
+	err = setupLogger(cfg.Log.Level, version)
 	if err != nil {
 		slog.Default().Error("failed to setup logger", "error", err)
 		os.Exit(1)
@@ -35,12 +32,9 @@ func main() {
 
 	vs := service.NewVersionService(version)
 
-	g, ctx := errgroup.WithContext(context.Background())
-	ctx = withInterrupt(ctx, os.Interrupt)
-
-	internal.StartServers(ctx, g, cfg, vs)
-
-	if err = g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
+	ctx := withInterrupt(context.Background(), os.Interrupt)
+	err = internal.RunServers(ctx, cfg, vs)
+	if err != nil {
 		slog.Default().Error("failed to start servers", "error", err)
 		os.Exit(1)
 	}
@@ -56,7 +50,7 @@ func withInterrupt(ctx context.Context, sig ...os.Signal) context.Context {
 		select {
 		case <-ctx.Done():
 		case s := <-interrupt:
-			slog.Default().Info("received signal", "signal", s)
+			slog.Default().Info("received signal", slog.String("signal", s.String()))
 			cancel()
 		}
 	}()

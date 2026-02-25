@@ -31,7 +31,7 @@ task install-grpcurl
 
 ```shell
 # Отправляет запрос на proto.ExpoService/GetVersion
-./bin/grpcurl \
+grpcurl \
   -plaintext \
   -d '{}' \
   localhost:50051 \
@@ -40,8 +40,12 @@ task install-grpcurl
 
 ```shell
 # Отправляет запрос на api/version
-curl -i -X GET "http://127.0.0.1:8081/api/version"
+curl -i \
+  -X GET \
+  "http://localhost:8080/api/version"
 ```
+
+[Pprof server](http://localhost:6060/debug/pprof/)
 
 ```shell
 # Запускает нагрузочный тест
