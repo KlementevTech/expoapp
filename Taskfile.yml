@@ -16,10 +16,11 @@ vars:
   BIN_DIR: '{{.SERVICE_DIR}}/bin'
   API_DIR: '{{.SERVICE_DIR}}/api'
 
-  GOLANGCI_LINT_VERSION: 'v2.9.0'
+  GOLANGCI_LINT_VERSION: 'v2.10.1'
   GOFUMPT_VERSION: 'v0.9.2'
-  BUF_VERSION: 'v1.65.0'
-  NANCY_VERSION: 'v1.0.46'
+  BUF_VERSION: 'v1.66.0'
+  NANCY_VERSION: 'v1.2.0'
+  OAPI_CODEGEN_VERSION: 'v2.5.1'
 
 tasks:
   lint:
@@ -29,6 +30,14 @@ tasks:
         silent: true
     cmds:
       - '{{.BIN_DIR}}/golangci-lint run ./...'
+
+  fix:
+    desc: Запускает фиксер линтера
+    deps:
+      - task: install-tools
+        silent: true
+    cmds:
+      - '{{.BIN_DIR}}/golangci-lint run --fix ./...'
 
   format:
     desc: Запускает форматтер
@@ -54,6 +63,13 @@ tasks:
     dir: '{{.API_DIR}}'
     cmds:
       - '{{.BIN_DIR}}/buf generate'
+
+  gen-oapi:
+    desc: Генерирует openapi файлы используя oapi-codegen
+    cmds:
+      - '{{.BIN_DIR}}/oapi-codegen --config api/openapi/models.cfg.yml api/openapi/openapi.yml'
+      - '{{.BIN_DIR}}/oapi-codegen --config api/openapi/server.cfg.yml api/openapi/openapi.yml'
+      - '{{.BIN_DIR}}/oapi-codegen --config api/openapi/client.cfg.yml api/openapi/openapi.yml'
 
   lint-proto:
     desc: Проверка protobuf линтером
@@ -101,11 +117,12 @@ tasks:
   pre-commit:
     desc: Запускает все проверки перед коммитом
     cmds:
-      - task: tidy
       - task: format
+      - task: fix
       - task: lint
       - task: lint-proto
       - task: test
+      - task: tidy
       - echo "[OK] Все проверки пройдены"
 
   cp-env:
@@ -164,6 +181,7 @@ tasks:
       - test -f "{{.BIN_DIR}}/protoc-gen-go-grpc"
       - test -f "{{.BIN_DIR}}/buf"
       - test -f "{{.BIN_DIR}}/nancy"
+      - test -f "{{.BIN_DIR}}/oapi-codegen"
     env:
       GOBIN: '{{.BIN_DIR}}'
     cmds:
@@ -175,6 +193,7 @@ tasks:
         go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest &
         go install github.com/bufbuild/buf/cmd/buf@{{.BUF_VERSION}} &
         go install github.com/sonatype-nexus-community/nancy@{{.NANCY_VERSION}} &
+        go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@{{.OAPI_CODEGEN_VERSION}} &
         wait
 
   update-tools:

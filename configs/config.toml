@@ -1,5 +1,13 @@
 # config.toml
 
+log_level = "debug"
+
 [grpc_server]
 host = "0.0.0.0"
 port = 50051
+
+[rest_server]
+host = "0.0.0.0"
+port = 8081
+read_header_timeout = "3s"
+shutdown_timeout = "3s"

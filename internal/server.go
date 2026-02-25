@@ -2,10 +2,14 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
+	"net/http"
 	"strconv"
+
+	"expo/internal/rest"
 
 	"expo/internal/handlers/expo"
 	"expo/internal/service"
@@ -23,13 +27,50 @@ func StartServers(ctx context.Context, g *errgroup.Group, cfg Config, vs *servic
 		expo.RegisterHandler(vs),
 	)
 
+	restServer := startRESTServer(
+		ctx,
+		g,
+		rest.SetupRouter(vs),
+		cfg.RESTServer,
+	)
+
 	g.Go(func() error {
 		<-ctx.Done()
-		slog.Default().Info("stopping gRPC server")
+
+		sdCtx, cancel := context.WithTimeout(context.Background(), cfg.RESTServer.ShutdownTimeout)
+		defer cancel()
+
+		err := restServer.Shutdown(ctx)
+		if err != nil {
+			slog.Default().ErrorContext(sdCtx, "failed to shutdown rest server", "error", err)
+		}
+
 		grpcServer.GracefulStop()
+		slog.Default().Info("stopped gRPC server")
 
 		return nil
 	})
+}
+
+func startRESTServer(ctx context.Context, g *errgroup.Group, handlers http.Handler, cfg RESTServerConfig) *http.Server {
+	s := &http.Server{
+		Addr:              net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
+		Handler:           handlers,
+		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
+	}
+
+	g.Go(func() error {
+		slog.Default().InfoContext(ctx, fmt.Sprintf("starting REST server at %s", s.Addr))
+		err := s.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return err
+		}
+
+		slog.Default().InfoContext(ctx, "stopped REST server")
+		return nil
+	})
+
+	return s
 }
 
 func startGRPCServer(

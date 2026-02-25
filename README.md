@@ -30,12 +30,17 @@ task install-grpcurl
 ```
 
 ```shell
-# Отправляет запрос на proto.ExpoService/GetInfoV1
+# Отправляет запрос на proto.ExpoService/GetVersion
 ./bin/grpcurl \
   -plaintext \
   -d '{}' \
   localhost:50051 \
   expo.v1.ExpoService/GetVersion
+```
+
+```shell
+# Отправляет запрос на api/version
+curl -i -X GET "http://127.0.0.1:8081/api/version"
 ```
 
 ```shell

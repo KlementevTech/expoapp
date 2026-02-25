@@ -27,6 +27,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	err = setupLogger(cfg.LogLevel, version)
+	if err != nil {
+		slog.Default().Error("failed to setup logger", "error", err)
+		os.Exit(1)
+	}
+
 	vs := service.NewVersionService(version)
 
 	g, ctx := errgroup.WithContext(context.Background())
@@ -56,4 +62,22 @@ func withInterrupt(ctx context.Context, sig ...os.Signal) context.Context {
 	}()
 
 	return ctx
+}
+
+func setupLogger(level, version string) error {
+	var l slog.Level
+	if err := l.UnmarshalText([]byte(level)); err != nil {
+		return err
+	}
+
+	slog.SetDefault(
+		slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+				Level: l,
+			}),
+		).With(
+			slog.String("version", version),
+		),
+	)
+	return nil
 }

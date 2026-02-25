@@ -4,12 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
 	GRPCServer GRPCServerConfig `mapstructure:"grpc_server"`
+	RESTServer RESTServerConfig `mapstructure:"rest_server"`
+	LogLevel   string           `mapstructure:"log_level"`
 }
 
 type GRPCServerConfig struct {
@@ -17,7 +20,18 @@ type GRPCServerConfig struct {
 	Port int    `mapstructure:"port"`
 }
 
+type RESTServerConfig struct {
+	Host              string        `mapstructure:"host"`
+	Port              int           `mapstructure:"port"`
+	ReadHeaderTimeout time.Duration `mapstructure:"read_header_timeout"`
+	ShutdownTimeout   time.Duration `mapstructure:"shutdown_timeout"`
+}
+
 func LoadConfig(path string) (Config, error) {
+	if path == "" {
+		return Config{}, errors.New("no config file path")
+	}
+
 	return loadConfigAs[Config](path, "EXPO")
 }
 
