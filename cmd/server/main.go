@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -14,17 +13,13 @@ import (
 var version = "dev"
 
 func main() {
-	var path string
-	flag.StringVar(&path, "config", "", "config file path")
-	flag.Parse()
-
-	cfg, err := internal.LoadConfig(path)
+	cfg, err := internal.LoadConfig()
 	if err != nil {
 		slog.Default().Error("failed to load config", "error", err)
 		os.Exit(1)
 	}
 
-	err = setupLogger(cfg.Log.Level, version)
+	err = setupLogger(cfg.Log, version)
 	if err != nil {
 		slog.Default().Error("failed to setup logger", "error", err)
 		os.Exit(1)
@@ -32,7 +27,7 @@ func main() {
 
 	vs := service.NewVersionService(version)
 
-	ctx := withInterrupt(context.Background(), os.Interrupt)
+	ctx := notifyContext(os.Interrupt)
 	err = internal.RunServers(ctx, cfg, vs)
 	if err != nil {
 		slog.Default().Error("failed to start servers", "error", err)
@@ -40,27 +35,24 @@ func main() {
 	}
 }
 
-func withInterrupt(ctx context.Context, sig ...os.Signal) context.Context {
-	interrupt := make(chan os.Signal, 1)
+func notifyContext(sig ...os.Signal) context.Context {
+	interrupt := make(chan os.Signal, len(sig))
 	signal.Notify(interrupt, sig...)
 
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
-		select {
-		case <-ctx.Done():
-		case s := <-interrupt:
-			slog.Default().Info("received signal", slog.String("signal", s.String()))
-			cancel()
-		}
+		s := <-interrupt
+		slog.Default().Info("received signal", slog.String("signal", s.String()))
+		cancel()
 	}()
 
 	return ctx
 }
 
-func setupLogger(level, version string) error {
+func setupLogger(cfg internal.LogConfig, version string) error {
 	var l slog.Level
-	if err := l.UnmarshalText([]byte(level)); err != nil {
+	if err := l.UnmarshalText([]byte(cfg.Level)); err != nil {
 		return err
 	}
 

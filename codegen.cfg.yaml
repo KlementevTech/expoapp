@@ -4,8 +4,8 @@ package: openapi
 
 generate:
   gin-server: true
-  models: false
+  models: true
   strict-server: true
   embedded-spec: false
 
-output: pkg/openapi/server.gen.go
+output: internal/gen/openapi/openapi.gen.go

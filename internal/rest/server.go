@@ -3,8 +3,8 @@ package rest
 import (
 	"context"
 
+	"expo/internal/gen/openapi"
 	"expo/internal/model"
-	"expo/pkg/openapi"
 )
 
 type VersionService interface {

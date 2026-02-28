@@ -3,7 +3,7 @@ package expo
 import (
 	"context"
 
-	expov1 "expo/pkg/pb/expo/v1"
+	expov1 "expo/internal/gen/pb/expo/v1"
 
 	"google.golang.org/grpc"
 )

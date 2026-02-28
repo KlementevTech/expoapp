@@ -13,6 +13,7 @@ vars:
   IMAGE_TAGGED: '{{.IMAGE}}:{{.TAG}}'
 
   SERVICE_DIR: '{{.ROOT_DIR}}'
+  DOCKERFILE: '{{.ROOT_DIR}}/docker/Dockerfile'
   BIN_DIR: '{{.SERVICE_DIR}}/bin'
   API_DIR: '{{.SERVICE_DIR}}/api'
 
@@ -60,16 +61,14 @@ tasks:
     deps:
       - task: install-tools
         silent: true
-    dir: '{{.API_DIR}}'
+    dir: '{{.SERVICE_DIR}}'
     cmds:
       - '{{.BIN_DIR}}/buf generate'
 
   gen-oapi:
-    desc: Генерирует openapi файлы используя oapi-codegen
+    desc: Генерирует OpenApi файлы используя oapi-codegen
     cmds:
-      - '{{.BIN_DIR}}/oapi-codegen --config api/openapi/models.cfg.yml api/openapi/openapi.yml'
-      - '{{.BIN_DIR}}/oapi-codegen --config api/openapi/server.cfg.yml api/openapi/openapi.yml'
-      - '{{.BIN_DIR}}/oapi-codegen --config api/openapi/client.cfg.yml api/openapi/openapi.yml'
+      - '{{.BIN_DIR}}/oapi-codegen --config codegen.cfg.yaml api/openapi/openapi.yml'
 
   lint-proto:
     desc: Проверка protobuf линтером
@@ -140,6 +139,7 @@ tasks:
     cmds:
       - |
         docker build \
+          -f "{{.DOCKERFILE}}" \
           --build-arg VERSION={{.TAG}} \
           -t "{{.IMAGE_TAGGED}}" \
           -t "{{.IMAGE_LATEST}}" \

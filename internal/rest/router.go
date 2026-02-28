@@ -1,8 +1,8 @@
 package rest
 
 import (
+	"expo/internal/gen/openapi"
 	"expo/internal/rest/middleware"
-	"expo/pkg/openapi"
 
 	"github.com/gin-gonic/gin"
 )

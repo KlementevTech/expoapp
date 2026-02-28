@@ -4,13 +4,13 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: expo/pkg/pb
+      value: expo/internal/gen/pb
 plugins:
-  - local: ../bin/protoc-gen-go
-    out: ../pkg/pb
+  - local: bin/protoc-gen-go
+    out: internal/gen/pb
     opt: paths=source_relative
-  - local: ../bin/protoc-gen-go-grpc
-    out: ../pkg/pb
+  - local: bin/protoc-gen-go-grpc
+    out: internal/gen/pb
     opt: paths=source_relative
 inputs:
-  - directory: proto
+  - directory: api/proto

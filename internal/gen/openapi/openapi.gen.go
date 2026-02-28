@@ -13,6 +13,11 @@ import (
 	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
 )
 
+// GetVersion defines model for GetVersion.
+type GetVersion struct {
+	Version string `json:"version"`
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Getting version

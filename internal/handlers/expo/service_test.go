@@ -3,10 +3,10 @@ package expo_test
 import (
 	"testing"
 
+	expov1 "expo/internal/gen/pb/expo/v1"
 	"expo/internal/handlers/expo"
 	"expo/internal/handlers/expo/mocks"
 	"expo/internal/model"
-	expov1 "expo/pkg/pb/expo/v1"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
