@@ -11,15 +11,15 @@ type VersionService interface {
 	GetVersion() *model.Version
 }
 
-type server struct {
-	vs VersionService
+type strictServerImpl struct {
+	versionSvc VersionService
 }
 
-func (s *server) GetVersion(
+func (s *strictServerImpl) GetVersion(
 	_ context.Context,
 	_ openapi.GetVersionRequestObject,
 ) (openapi.GetVersionResponseObject, error) {
 	return &openapi.GetVersion200JSONResponse{
-		Version: string(*s.vs.GetVersion()),
+		Version: string(*s.versionSvc.GetVersion()),
 	}, nil
 }

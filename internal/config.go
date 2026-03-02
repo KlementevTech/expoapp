@@ -2,7 +2,6 @@ package internal
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"strings"
 	"time"
@@ -39,11 +38,7 @@ type LogConfig struct {
 	Level string `mapstructure:"level"`
 }
 
-func LoadConfig() (*Config, error) {
-	var path string
-	flag.StringVar(&path, "config", "", "config file path")
-	flag.Parse()
-
+func LoadConfig(path string) (*Config, error) {
 	if path == "" {
 		return nil, errors.New("no config file path")
 	}

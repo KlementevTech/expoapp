@@ -7,17 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(vs VersionService) *gin.Engine {
+func RegisterServer(versionSvc VersionService) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
-	router := gin.New()
-	router.Use(
+	handler := gin.New()
+	handler.Use(
 		gin.Recovery(),
 		middleware.Logger(),
 	)
 
-	api := router.Group("/api")
-	openapi.RegisterHandlers(api, openapi.NewStrictHandler(&server{vs: vs}, nil))
-
-	return router
+	apiGroup := handler.Group("/api")
+	openapi.RegisterHandlers(apiGroup, openapi.NewStrictHandler(&strictServerImpl{versionSvc: versionSvc}, nil))
+	return handler
 }

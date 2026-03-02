@@ -2,68 +2,72 @@ package main
 
 import (
 	"context"
+	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
+	"syscall"
+
+	"expo/internal/handlers/expo"
+	"expo/internal/rest"
+	"expo/internal/service"
 
 	"expo/internal"
-	"expo/internal/service"
+
+	"github.com/samber/do/v2"
 )
 
 var version = "dev"
 
 func main() {
-	cfg, err := internal.LoadConfig()
-	if err != nil {
-		slog.Default().Error("failed to load config", "error", err)
-		os.Exit(1)
-	}
-
-	err = setupLogger(cfg.Log, version)
-	if err != nil {
-		slog.Default().Error("failed to setup logger", "error", err)
-		os.Exit(1)
-	}
-
-	vs := service.NewVersionService(version)
-
-	ctx := notifyContext(os.Interrupt)
-	err = internal.RunServers(ctx, cfg, vs)
-	if err != nil {
-		slog.Default().Error("failed to start servers", "error", err)
+	if err := run(); err != nil {
+		slog.Default().Error("something went wrong", "error", err)
 		os.Exit(1)
 	}
 }
 
-func notifyContext(sig ...os.Signal) context.Context {
-	interrupt := make(chan os.Signal, len(sig))
-	signal.Notify(interrupt, sig...)
+func run() error {
+	var path string
+	flag.StringVar(&path, "config", "", "config file path")
+	flag.Parse()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	cfg, err := internal.LoadConfig(path)
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
 
-	go func() {
-		s := <-interrupt
-		slog.Default().Info("received signal", slog.String("signal", s.String()))
-		cancel()
+	err = internal.SetupLogger(cfg.Log, version)
+	if err != nil {
+		return fmt.Errorf("setup logger: %w", err)
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	i := do.New()
+	internal.ProvideDeps(i, version)
+
+	defer func() {
+		internal.ShutdownDeps(i)
 	}()
 
-	return ctx
-}
+	versionSvc := do.MustInvoke[*service.VersionService](i)
 
-func setupLogger(cfg internal.LogConfig, version string) error {
-	var l slog.Level
-	if err := l.UnmarshalText([]byte(cfg.Level)); err != nil {
+	servers := []internal.Runner{
+		internal.NewRESTServer(cfg.RESTServer, rest.RegisterServer(versionSvc)),
+		internal.NewGRPCRunner(cfg.GRPCServer, expo.Register(versionSvc)),
+	}
+
+	if cfg.Pprof.Enabled {
+		servers = append(servers, internal.NewPprofRunner(cfg.Pprof))
+	}
+
+	err = internal.RunServers(ctx, servers...)
+	if err != nil {
 		return err
 	}
 
-	slog.SetDefault(
-		slog.New(
-			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-				Level: l,
-			}),
-		).With(
-			slog.String("version", version),
-		),
-	)
+	slog.Default().Info("server stopped")
 	return nil
 }

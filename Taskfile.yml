@@ -68,7 +68,7 @@ tasks:
   gen-oapi:
     desc: Генерирует OpenApi файлы используя oapi-codegen
     cmds:
-      - '{{.BIN_DIR}}/oapi-codegen --config codegen.cfg.yaml api/openapi/openapi.yml'
+      - '{{.BIN_DIR}}/oapi-codegen --config codegen.yaml api/openapi/openapi.yml'
 
   lint-proto:
     desc: Проверка protobuf линтером
