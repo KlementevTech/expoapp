@@ -9,8 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"expo/internal/handlers/expo"
-	"expo/internal/rest"
+	"expo/internal/api/private/expo"
+	"expo/internal/api/public"
+	"expo/internal/servers"
 	"expo/internal/service"
 
 	"expo/internal"
@@ -54,16 +55,16 @@ func run() error {
 
 	versionSvc := do.MustInvoke[*service.VersionService](i)
 
-	servers := []internal.ServerRunner{
-		internal.NewRESTServer(cfg.RESTServer, rest.NewHTTPRouter(versionSvc)),
-		internal.NewGRPCRunner(cfg.GRPCServer, expo.NewRegister(versionSvc)),
+	runners := []servers.Runner{
+		servers.NewRESTRunner(cfg.RESTServer, public.NewHTTPHandler(versionSvc)),
+		servers.NewGRPCRunner(cfg.GRPCServer, expo.NewServerRegister(versionSvc)),
 	}
 
-	if cfg.Pprof.Enabled {
-		servers = append(servers, internal.NewPprofRunner(cfg.Pprof))
+	if cfg.PprofEnabled {
+		runners = append(runners, servers.NewPprofRunner(cfg.PprofServer))
 	}
 
-	err = internal.RunServers(ctx, servers...)
+	err = servers.Run(ctx, runners...)
 	if err != nil {
 		return err
 	}

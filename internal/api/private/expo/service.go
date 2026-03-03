@@ -6,21 +6,21 @@ import (
 	expov1 "expo/internal/gen/pb/expo/v1"
 )
 
-var _ expov1.ExpoServiceServer = (*serviceImpl)(nil)
+var _ expov1.ExpoServiceServer = (*serverImpl)(nil)
 
-type serviceImpl struct {
+type serverImpl struct {
 	expov1.UnimplementedExpoServiceServer
 
 	versionSvc VersionService
 }
 
-func NewService(versions VersionService) expov1.ExpoServiceServer {
-	return &serviceImpl{
+func NewExpoServiceServer(versions VersionService) expov1.ExpoServiceServer {
+	return &serverImpl{
 		versionSvc: versions,
 	}
 }
 
-func (s *serviceImpl) GetVersion(_ context.Context, _ *expov1.GetVersionRequest) (*expov1.GetVersionResponse, error) {
+func (s *serverImpl) GetVersion(_ context.Context, _ *expov1.GetVersionRequest) (*expov1.GetVersionResponse, error) {
 	version := s.versionSvc.GetVersion()
 
 	return &expov1.GetVersionResponse{

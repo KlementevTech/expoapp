@@ -1,5 +1,7 @@
 # config.toml
 
+pprof_enabled = false
+
 [log]
 level = "info"
 
@@ -12,8 +14,7 @@ host = "0.0.0.0"
 port = 8080
 read_header_timeout = "3s"
 
-[pprof]
+[pprof_server]
 host = "0.0.0.0"
 port = 6060
-enabled = false
 read_header_timeout = "3s"

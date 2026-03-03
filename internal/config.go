@@ -4,34 +4,18 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
+
+	"expo/internal/servers"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	GRPCServer GRPCServerConfig `mapstructure:"grpc_server"`
-	RESTServer RESTServerConfig `mapstructure:"rest_server"`
-	Pprof      PprofConfig      `mapstructure:"pprof"`
-	Log        LogConfig        `mapstructure:"log"`
-}
-
-type GRPCServerConfig struct {
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
-}
-
-type RESTServerConfig struct {
-	Host              string        `mapstructure:"host"`
-	Port              int           `mapstructure:"port"`
-	ReadHeaderTimeout time.Duration `mapstructure:"read_header_timeout"`
-}
-
-type PprofConfig struct {
-	Host              string        `mapstructure:"host"`
-	Port              int           `mapstructure:"port"`
-	Enabled           bool          `mapstructure:"enabled"`
-	ReadHeaderTimeout time.Duration `mapstructure:"read_header_timeout"`
+	GRPCServer   servers.GRPCServerConfig `mapstructure:"grpc_server"`
+	RESTServer   servers.HTTPServerConfig `mapstructure:"rest_server"`
+	PprofServer  servers.HTTPServerConfig `mapstructure:"pprof_server"`
+	Log          LogConfig                `mapstructure:"log"`
+	PprofEnabled bool                     `mapstructure:"pprof_enabled"`
 }
 
 type LogConfig struct {

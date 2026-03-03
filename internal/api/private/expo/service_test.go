@@ -3,9 +3,9 @@ package expo_test
 import (
 	"testing"
 
+	"expo/internal/api/private/expo"
+	"expo/internal/api/private/expo/mocks"
 	expov1 "expo/internal/gen/pb/expo/v1"
-	"expo/internal/handlers/expo"
-	"expo/internal/handlers/expo/mocks"
 	"expo/internal/model"
 
 	"github.com/stretchr/testify/assert"
@@ -41,11 +41,11 @@ func TestService_GetVersion(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			vs := mocks.NewMockVersionService(ctrl)
-			expoService := expo.NewService(vs)
+			expoServiceSrv := expo.NewExpoServiceServer(vs)
 
 			tt.prepare(vs)
 
-			got, err := expoService.GetVersion(t.Context(), &expov1.GetVersionRequest{})
+			got, err := expoServiceSrv.GetVersion(t.Context(), &expov1.GetVersionRequest{})
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})
