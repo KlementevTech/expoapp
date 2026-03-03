@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"expo/internal/api/private/expo"
-	"expo/internal/api/public"
+	"expo/internal/api/grpc/expo"
+	"expo/internal/api/rest"
 	"expo/internal/servers"
 	"expo/internal/service"
 
@@ -56,7 +56,7 @@ func run() error {
 	versionSvc := do.MustInvoke[*service.VersionService](i)
 
 	runners := []servers.Runner{
-		servers.NewRESTRunner(cfg.RESTServer, public.NewHTTPHandler(versionSvc)),
+		servers.NewRESTRunner(cfg.RESTServer, rest.NewHTTPHandler(versionSvc)),
 		servers.NewGRPCRunner(cfg.GRPCServer, expo.NewServerRegister(versionSvc)),
 	}
 

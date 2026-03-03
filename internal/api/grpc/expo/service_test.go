@@ -3,8 +3,8 @@ package expo_test
 import (
 	"testing"
 
-	"expo/internal/api/private/expo"
-	"expo/internal/api/private/expo/mocks"
+	"expo/internal/api/grpc/expo"
+	"expo/internal/api/grpc/expo/mocks"
 	expov1 "expo/internal/gen/pb/expo/v1"
 	"expo/internal/model"
 

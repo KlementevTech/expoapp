@@ -1,9 +1,9 @@
-package public
+package rest
 
 import (
 	"net/http"
 
-	"expo/internal/api/public/middleware"
+	"expo/internal/api/rest/middleware"
 	"expo/internal/gen/openapi"
 
 	"github.com/gin-gonic/gin"
