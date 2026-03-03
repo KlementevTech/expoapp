@@ -64,11 +64,11 @@ func run(
 	return nil
 }
 
-type Runner interface {
+type ServerRunner interface {
 	Run(ctx context.Context, g *errgroup.Group) error
 }
 
-func RunServers(ctx context.Context, runner ...Runner) error {
+func RunServers(ctx context.Context, runner ...ServerRunner) error {
 	if len(runner) == 0 {
 		return errors.New("no server runners")
 	}
@@ -88,25 +88,27 @@ func RunServers(ctx context.Context, runner ...Runner) error {
 	return nil
 }
 
-type RegisterFunc func(s *grpc.Server)
-
-type GRPCRunner struct {
-	cfg       GRPCServerConfig
-	registers []RegisterFunc
+type GRPCRegistrator interface {
+	RegisterServer(s *grpc.Server)
 }
 
-func NewGRPCRunner(cfg GRPCServerConfig, register ...RegisterFunc) *GRPCRunner {
-	return &GRPCRunner{
+type grpcRunner struct {
+	cfg       GRPCServerConfig
+	registers []GRPCRegistrator
+}
+
+func NewGRPCRunner(cfg GRPCServerConfig, register ...GRPCRegistrator) ServerRunner {
+	return &grpcRunner{
 		cfg:       cfg,
-		registers: append([]RegisterFunc{}, register...),
+		registers: append([]GRPCRegistrator{}, register...),
 	}
 }
 
-func (r *GRPCRunner) Run(ctx context.Context, g *errgroup.Group) error {
+func (r *grpcRunner) Run(ctx context.Context, g *errgroup.Group) error {
 	grpcSrv := grpc.NewServer()
 
-	for _, register := range r.registers {
-		register(grpcSrv)
+	for _, reg := range r.registers {
+		reg.RegisterServer(grpcSrv)
 	}
 
 	reflection.Register(grpcSrv)
@@ -114,19 +116,19 @@ func (r *GRPCRunner) Run(ctx context.Context, g *errgroup.Group) error {
 	return run(ctx, g, r.cfg.Host, r.cfg.Port, newGRPCAdapter("GRPC", grpcSrv))
 }
 
-type RESTRunner struct {
+type restRunner struct {
 	cfg     RESTServerConfig
 	handler http.Handler
 }
 
-func NewRESTServer(cfg RESTServerConfig, handler http.Handler) *RESTRunner {
-	return &RESTRunner{
+func NewRESTServer(cfg RESTServerConfig, handler http.Handler) ServerRunner {
+	return &restRunner{
 		cfg:     cfg,
 		handler: handler,
 	}
 }
 
-func (r *RESTRunner) Run(ctx context.Context, g *errgroup.Group) error {
+func (r *restRunner) Run(ctx context.Context, g *errgroup.Group) error {
 	restSrv := &http.Server{
 		Handler:           r.handler,
 		ReadHeaderTimeout: r.cfg.ReadHeaderTimeout,
@@ -135,15 +137,15 @@ func (r *RESTRunner) Run(ctx context.Context, g *errgroup.Group) error {
 	return run(ctx, g, r.cfg.Host, r.cfg.Port, newHTTPAdapter("REST", restSrv))
 }
 
-type PprofRunner struct {
+type pprofRunner struct {
 	cfg PprofConfig
 }
 
-func NewPprofRunner(cfg PprofConfig) *PprofRunner {
-	return &PprofRunner{cfg: cfg}
+func NewPprofRunner(cfg PprofConfig) ServerRunner {
+	return &pprofRunner{cfg: cfg}
 }
 
-func (r *PprofRunner) Run(ctx context.Context, g *errgroup.Group) error {
+func (r *pprofRunner) Run(ctx context.Context, g *errgroup.Group) error {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/debug/pprof/", pprof.Index)

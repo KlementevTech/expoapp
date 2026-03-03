@@ -54,9 +54,9 @@ func run() error {
 
 	versionSvc := do.MustInvoke[*service.VersionService](i)
 
-	servers := []internal.Runner{
-		internal.NewRESTServer(cfg.RESTServer, rest.RegisterServer(versionSvc)),
-		internal.NewGRPCRunner(cfg.GRPCServer, expo.Register(versionSvc)),
+	servers := []internal.ServerRunner{
+		internal.NewRESTServer(cfg.RESTServer, rest.NewHTTPRouter(versionSvc)),
+		internal.NewGRPCRunner(cfg.GRPCServer, expo.NewRegister(versionSvc)),
 	}
 
 	if cfg.Pprof.Enabled {

@@ -1,13 +1,15 @@
 package rest
 
 import (
+	"net/http"
+
 	"expo/internal/gen/openapi"
 	"expo/internal/rest/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterServer(versionSvc VersionService) *gin.Engine {
+func NewHTTPRouter(versionSvc VersionService) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 
 	handler := gin.New()
