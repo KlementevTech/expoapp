@@ -4,22 +4,34 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
-	"expo/internal/servers"
+	grpcserver "expo/internal/server/grpc_server"
+	httpserver "expo/internal/server/http_server"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	GRPCServer   servers.GRPCServerConfig `mapstructure:"grpc_server"`
-	RESTServer   servers.HTTPServerConfig `mapstructure:"rest_server"`
-	PprofServer  servers.HTTPServerConfig `mapstructure:"pprof_server"`
-	Log          LogConfig                `mapstructure:"log"`
-	PprofEnabled bool                     `mapstructure:"pprof_enabled"`
+	GRPCServer    grpcserver.Config `mapstructure:"grpc_server"`
+	ConnectServer httpserver.Config `mapstructure:"connect_server"`
+	RESTServer    httpserver.Config `mapstructure:"rest_server"`
+	PprofServer   httpserver.Config `mapstructure:"pprof_server"`
+	SQLite        SQLiteConfig      `mapstructure:"sqlite"`
+	Log           LogConfig         `mapstructure:"log"`
+	PprofEnabled  bool              `mapstructure:"pprof_enabled"`
 }
 
 type LogConfig struct {
 	Level string `mapstructure:"level"`
+}
+
+type SQLiteConfig struct {
+	Path            string        `mapstructure:"path"`
+	MaxOpenConns    int           `mapstructure:"max_open_conns"`
+	MaxIdleConns    int           `mapstructure:"max_idle_conns"`
+	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
+	ConnectTimeout  time.Duration `mapstructure:"connect_timeout"`
 }
 
 func LoadConfig(path string) (*Config, error) {

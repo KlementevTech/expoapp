@@ -12,6 +12,10 @@ vars:
   IMAGE_LATEST: '{{.IMAGE}}:latest'
   IMAGE_TAGGED: '{{.IMAGE}}:{{.TAG}}'
 
+  DB_NAME: 'expo.db'
+  DB_SCHEMA_DIR: 'migrations/sqlite/schema'
+  GOOSE_DRIVER: 'sqlite3'
+
   SERVICE_DIR: '{{.ROOT_DIR}}'
   DOCKERFILE: '{{.ROOT_DIR}}/docker/Dockerfile'
   BIN_DIR: '{{.SERVICE_DIR}}/bin'
@@ -30,7 +34,7 @@ tasks:
       - task: install-tools
         silent: true
     cmds:
-      - '{{.BIN_DIR}}/golangci-lint run ./...'
+      - '{{.BIN_DIR}}/golangci-lint run'
 
   fix:
     desc: Запускает фиксер линтера
@@ -54,7 +58,7 @@ tasks:
       - task: install-tools
         silent: true
     cmds:
-      - PATH="{{.BIN_DIR}}:$PATH" go generate ./...
+      - 'PATH="{{.BIN_DIR}}:$PATH" go generate ./...'
 
   gen-pb:
     desc: Генерирует protobuf файлы используя Buf
@@ -164,7 +168,7 @@ tasks:
       - docker compose logs -f
 
   test-perf:
-    desc: Запускает нагрузочный тест
+    desc: "Запускает нагрузочный тест"
     env:
       EXPO_PORT: '{{.EXPO_PORT | default "50051"}}'
     cmds:
@@ -182,6 +186,7 @@ tasks:
       - test -f "{{.BIN_DIR}}/buf"
       - test -f "{{.BIN_DIR}}/nancy"
       - test -f "{{.BIN_DIR}}/oapi-codegen"
+      - test -f "{{.BIN_DIR}}/goose"
     env:
       GOBIN: '{{.BIN_DIR}}'
     cmds:
@@ -194,6 +199,7 @@ tasks:
         go install github.com/bufbuild/buf/cmd/buf@{{.BUF_VERSION}} &
         go install github.com/sonatype-nexus-community/nancy@{{.NANCY_VERSION}} &
         go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@{{.OAPI_CODEGEN_VERSION}} &
+        go install github.com/pressly/goose/v3/cmd/goose@latest &
         wait
 
   update-tools:
@@ -207,6 +213,8 @@ tasks:
         rm -f {{.BIN_DIR}}/protoc-gen-go-grpc &
         rm -f {{.BIN_DIR}}/buf & 
         rm -f {{.BIN_DIR}}/nancy &
+        rm -f {{.BIN_DIR}}/oapi-codegen &
+        rm -f {{.BIN_DIR}}/goose &
         wait
       - task: install-tools
 
@@ -217,8 +225,63 @@ tasks:
     cmds:
       - go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 
+  reflect:
+    desc: Show all gRPC services and methods
+    cmds:
+      - grpcurl -plaintext {{.GRPC_ADDR}} list {{.EXPO_V1_EXPOSERVICE}}
+
   default:
     desc: Список доступных команд
     silent: true
     cmds:
       - task --list
+
+  install-tools-v2:
+    desc: Устанавливает расширения для локальной разработки
+    cmds:
+      - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+      - go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
+      - go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+      - go install github.com/bufbuild/buf/cmd/buf@latest
+      - go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+      - go install github.com/pressly/goose/v3/cmd/goose@latest
+
+  buf-gen:
+    desc: Генерирует protobuf файлы используя Buf
+    cmds:
+      - buf generate
+
+  gen-queries:
+    desc: Кодогенерация sqlc запросов
+    cmds:
+      - sqlc generate
+
+  migrate-up:
+    desc: "Накатить миграции SQLite"
+    cmds:
+      - goose {{.GOOSE_DRIVER}} {{.DB_NAME}} -dir {{.DB_SCHEMA_DIR}} up
+
+  migrate-down:
+    desc: "Откатить последнюю миграцию"
+    cmds:
+      - goose {{.GOOSE_DRIVER}} {{.DB_NAME}} -dir {{.DB_SCHEMA_DIR}} down
+
+  migrate-reset:
+    desc: "Сбросить ВСЮ базу (удалить все таблицы)"
+    cmds:
+      - goose sqlite3 {{.DB_NAME}} -dir {{.DB_SCHEMA_DIR}} reset
+
+  migrate-status:
+    desc: "Проверить статус миграций"
+    cmds:
+      - goose {{.GOOSE_DRIVER}} {{.DB_NAME}} -dir {{.DB_SCHEMA_DIR}} status
+
+  migrate-new:
+    desc: "Создать миграцию. Пример: task migrate-new NAME=add_parts"
+    vars:
+      M_NAME: '{{default .NAME .name}}'
+    cmds:
+      - goose -dir {{.DB_SCHEMA_DIR}} {{.GOOSE_DRIVER}} {{.DB_NAME}} create {{.M_NAME}} sql
+    preconditions:
+      - sh: 'test -n "{{.M_NAME}}"'
+        msg: "Ошибка: нужно указать имя. Используй: task create-migration NAME=имя_миграции"

@@ -39,6 +39,13 @@ grpcurl \
 ```
 
 ```shell
+grpcurl -plaintext \
+    -d '{"id": "019cbea4-e202-731f-9206-966c34048cae", "name": "Turbo"}' \
+    localhost:50051 \
+    expo.v1.ExpoService/CreatePart
+```
+
+```shell
 # Отправляет запрос на api/version
 curl -i \
   -X GET \

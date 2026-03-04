@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package part.v1;
+
+import "google/protobuf/timestamp.proto";
+
+message Part {
+  string id = 1;
+  string name = 2;
+  int64 version = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  google.protobuf.Timestamp deleted_at = 6;
+}
+
+message CreatePartRequest {
+  string id = 1;
+  string name = 2;
+}
+
+message CreatePartResponse {
+  Part part = 1;
+}
+
+message GetPartRequest {
+  string id = 1;
+}
+
+message GetPartResponse {
+  Part part = 1;
+}
+
+message ListPartsRequest {
+  int32 limit = 1;
+  string page_token = 2;
+}
+
+message ListPartsResponse {
+  repeated Part parts = 1;
+  string next_page_token = 2;
+}
+
+message UpdatePartRequest {
+  string id = 1;
+  string name = 2;
+  int64 old_version = 3;
+}
+
+message UpdatePartResponse {
+  Part part = 1;
+}
+
+message DeletePartRequest {
+  string id = 1;
+  int64 old_version = 2;
+}
+
+message DeletePartResponse {}
+
+service PartService {
+  rpc CreatePart(CreatePartRequest) returns (CreatePartResponse) {}
+  rpc GetPart(GetPartRequest) returns (GetPartResponse) {}
+  rpc ListParts(ListPartsRequest) returns (ListPartsResponse) {}
+  rpc UpdatePart(UpdatePartRequest) returns (UpdatePartResponse) {}
+  rpc DeletePart(DeletePartRequest) returns (DeletePartResponse) {}
+}

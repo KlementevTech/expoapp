@@ -9,12 +9,16 @@ import (
 	"os/signal"
 	"syscall"
 
-	"expo/internal/api/grpc/expo"
 	"expo/internal/api/rest"
-	"expo/internal/servers"
-	"expo/internal/service"
+	httpserver "expo/internal/server/http_server"
 
 	"expo/internal"
+	apigrpc "expo/internal/api/grpc"
+	"expo/internal/api/handler"
+	"expo/internal/server"
+	grpcconnect "expo/internal/server/grpc_connect"
+	grpcserver "expo/internal/server/grpc_server"
+	"expo/internal/server/profiling"
 
 	"github.com/samber/do/v2"
 )
@@ -47,24 +51,24 @@ func run() error {
 	defer stop()
 
 	i := do.New()
-	internal.ProvideDeps(i, version)
-
+	shutdown := internal.ProvideDeps(i, cfg)
 	defer func() {
-		internal.ShutdownDeps(i)
+		shutdown()
 	}()
 
-	versionSvc := do.MustInvoke[*service.VersionService](i)
+	parts := do.MustInvoke[handler.PartRepository](i)
 
-	runners := []servers.Runner{
-		servers.NewRESTRunner(cfg.RESTServer, rest.NewHTTPHandler(versionSvc)),
-		servers.NewGRPCRunner(cfg.GRPCServer, expo.NewServerRegister(versionSvc)),
+	servers := []server.Runner{
+		grpcconnect.NewServer(cfg.ConnectServer, handler.NewHandler(parts, true)),
+		grpcserver.NewServer(cfg.GRPCServer, apigrpc.NewRegister(parts)),
+		httpserver.NewServer(cfg.RESTServer, rest.NewHandler()),
 	}
 
 	if cfg.PprofEnabled {
-		runners = append(runners, servers.NewPprofRunner(cfg.PprofServer))
+		servers = append(servers, profiling.NewServer(cfg.PprofServer))
 	}
 
-	err = servers.Run(ctx, runners...)
+	err = server.Run(ctx, servers...)
 	if err != nil {
 		return err
 	}

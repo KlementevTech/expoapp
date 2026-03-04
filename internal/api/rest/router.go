@@ -3,13 +3,13 @@ package rest
 import (
 	"net/http"
 
+	"expo/gen/openapi"
 	"expo/internal/api/rest/middleware"
-	"expo/internal/gen/openapi"
 
 	"github.com/gin-gonic/gin"
 )
 
-func NewHTTPHandler(versionSvc VersionService) http.Handler {
+func NewHandler() http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 
 	handler := gin.New()
@@ -19,6 +19,6 @@ func NewHTTPHandler(versionSvc VersionService) http.Handler {
 	)
 
 	apiGroup := handler.Group("/api")
-	openapi.RegisterHandlers(apiGroup, openapi.NewStrictHandler(&strictServerImpl{versionSvc: versionSvc}, nil))
+	openapi.RegisterHandlers(apiGroup, openapi.NewStrictHandler(&strictServerImpl{}, nil))
 	return handler
 }

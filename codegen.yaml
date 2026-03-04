@@ -8,4 +8,4 @@ generate:
   strict-server: true
   embedded-spec: false
 
-output: internal/gen/openapi/openapi.gen.go
+output: gen/openapi/openapi.gen.go
